@@ -20,7 +20,7 @@ require_once $engine_file;
 
 $daily = array();
 for ( $i = 0; $i < 30; $i++ ) { $daily[] = array( 'date' => date( 'Y-m-d', strtotime( '2026-09-08 -' . $i . ' days' ) ), 'units' => 2.0, 'revenue' => '20.00' ); }
-$windows = SSW_Metrics_Engine::calculate_windows( $daily, '2026-09-08', 365 );
+$windows = SSW_Metrics_Engine::calculate_windows( $daily, '2026-09-08', 30 );
 ssw_assert_metrics( 14.0 === $windows['units_7d'], '7-day units include seven days ending on metric date.' );
 ssw_assert_metrics( 60.0 === $windows['units_30d'], '30-day units aggregate correctly.' );
 ssw_assert_metrics( null === $windows['units_90d'], '90-day window is unavailable when only 30 days of history exist.' );
