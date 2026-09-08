@@ -13,13 +13,19 @@ Only these original brainstorming items were selected by the user:
 
 Additionally approved: **evidence-based bundle recommendations** (recommend which bundles to make; do not auto-create bundle products).
 
-Important correction from the user: **original item #9 is Estimated Lost Sales caused by Out-of-Stock. It is NOT ABC/XYZ.**
+Confirmed original-number corrections from the user:
 
-The numeric IDs above refer only to the assistant's original brainstorming list. Do not renumber them using later specs, roadmap phases or implementation-task numbers.
+- **#9 = Estimated Lost Sales caused by Out-of-Stock. It is NOT ABC/XYZ.**
+- **#36 = Cash Flow / Purchasing Forecast for the next 90 days.**
+- **#37 = What-if simulator.**
+- **AI is NOT approved.**
+- **Weekly Executive Report is NOT approved.**
+
+The numeric IDs above refer only to the assistant's original brainstorming list. Do not renumber or reinterpret them using later specs, roadmap phases or implementation-task numbers.
 
 ## Approved feature whitelist
 
-The implementation may expose only the following new product capabilities that were selected/confirmed for this project:
+The implementation may expose only the following selected/confirmed capabilities:
 
 - Supplier management and supplier-product purchasing data.
 - Persistent Purchase Orders and receiving, including partial receiving.
@@ -35,10 +41,8 @@ The implementation may expose only the following new product capabilities that w
 - What Changed? dashboard.
 - Today Action Center.
 - Pareto analysis.
-- 90-day purchasing/cash forecast.
-- What-if simulator.
-- Optional AI explanation layer only after deterministic data exists.
-- Weekly Executive Report.
+- Cash Flow / Purchasing Forecast for the next 90 days (#36), including monthly projected purchasing spend and projected revenue/cash planning where deterministic inputs support it.
+- What-if simulator (#37), including temporary demand, lead-time and reorder-timing scenarios and resulting stockouts, Revenue at Risk and required purchasing cash.
 - Final information-architecture/navigation consolidation (#39), while preserving the existing WordPress/WooCommerce architecture for now.
 
 ## Technical foundations allowed but NOT standalone features
@@ -61,10 +65,11 @@ These were introduced by later assistant interpretation and are not approved fea
 - **Product 360** as a separate new feature/module.
 - **Seasonality-aware forecasting** as a separate roadmap feature.
 - **Forecast-accuracy dashboard/module** as a separate feature.
+- **Any AI feature or AI explanation layer.**
+- **Weekly Executive Report.**
 - Any new SaaS/backend architecture, React SPA, external database or microservice rewrite.
 - Any native iOS/Android app.
 - Autonomous purchasing or automatic PO placement.
-- AI-generated stock forecasts or AI as source of inventory truth.
 - Any other feature not present in the approved whitelist above.
 
 If an unapproved idea would be useful, document it nowhere in the active roadmap and do not implement it. Ask the user first.
