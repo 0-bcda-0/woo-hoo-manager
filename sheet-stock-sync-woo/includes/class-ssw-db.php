@@ -7,7 +7,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SSW_DB_SCHEMA_VERSION' ) ) {
-	define( 'SSW_DB_SCHEMA_VERSION', 6 );
+	define( 'SSW_DB_SCHEMA_VERSION', 7 );
 }
 
 final class SSW_DB {
@@ -31,6 +31,7 @@ final class SSW_DB {
 			case 4: self::migration_4(); break;
 			case 5: self::migration_5(); break;
 			case 6: self::migration_6(); break;
+			case 7: self::migration_7(); break;
 		}
 	}
 
@@ -90,5 +91,11 @@ final class SSW_DB {
 		self::ensure_dbdelta();
 		require_once __DIR__ . '/migrations/class-ssw-migration-6-analytics.php';
 		SSW_Migration_6_Analytics::run();
+	}
+
+	private static function migration_7() {
+		self::ensure_dbdelta();
+		require_once __DIR__ . '/migrations/class-ssw-migration-7-forecasting.php';
+		SSW_Migration_7_Forecasting::run();
 	}
 }
