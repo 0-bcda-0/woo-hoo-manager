@@ -9,12 +9,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/tmp-wordpress/' );
 }
 
+if ( ! function_exists( 'absint' ) ) {
+	function absint( $value ) {
+		return abs( (int) $value );
+	}
+}
+
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+	function sanitize_text_field( $value ) {
+		return trim( strip_tags( (string) $value ) );
+	}
+}
+
 function ssw_assert_supplier( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );
 		exit( 1 );
 	}
-}
 
 $class_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-suppliers.php';
 ssw_assert_supplier( file_exists( $class_file ), 'class-ssw-suppliers.php must exist.' );
@@ -23,15 +34,15 @@ require_once $class_file;
 ssw_assert_supplier( class_exists( 'SSW_Suppliers' ), 'SSW_Suppliers class must exist.' );
 
 $normalized = SSW_Suppliers::normalize_relation( array(
-	'product_id'    => '123',
-	'supplier_id'   => '7',
-	'supplier_sku'  => ' SUP-001 ',
-	'cost'          => '12,50',
-	'currency'      => 'eur',
-	'moq'           => '6',
-	'units_per_box' => '12',
-	'lead_time_days'=> '9',
-	'is_preferred'  => '1',
+	'product_id'     => '123',
+	'supplier_id'    => '7',
+	'supplier_sku'   => ' SUP-001 ',
+	'cost'           => '12,50',
+	'currency'       => 'eur',
+	'moq'            => '6',
+	'units_per_box'  => '12',
+	'lead_time_days' => '9',
+	'is_preferred'   => '1',
 ) );
 
 ssw_assert_supplier( 123 === $normalized['product_id'], 'Product ID is normalized to int.' );
