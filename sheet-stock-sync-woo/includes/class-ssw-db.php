@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SSW_DB_SCHEMA_VERSION' ) ) {
-	define( 'SSW_DB_SCHEMA_VERSION', 3 );
+	define( 'SSW_DB_SCHEMA_VERSION', 4 );
 }
 
 final class SSW_DB {
@@ -39,6 +39,9 @@ final class SSW_DB {
 				break;
 			case 3:
 				self::migration_3();
+				break;
+			case 4:
+				self::migration_4();
 				break;
 		}
 	}
@@ -165,5 +168,11 @@ final class SSW_DB {
 			. "KEY source_ref (source,source_ref)\n"
 			. ") {$charset_collate};";
 		dbDelta( $sql );
+	}
+
+	private static function migration_4() {
+		self::ensure_dbdelta();
+		require_once __DIR__ . '/migrations/class-ssw-migration-4-purchase-orders.php';
+		SSW_Migration_4_Purchase_Orders::run();
 	}
 }
