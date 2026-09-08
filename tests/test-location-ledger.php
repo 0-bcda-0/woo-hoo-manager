@@ -15,6 +15,12 @@ if ( ! function_exists( 'absint' ) ) {
 if ( ! function_exists( 'sanitize_text_field' ) ) {
 	function sanitize_text_field( $value ) { return trim( strip_tags( (string) $value ) ); }
 }
+if ( ! function_exists( 'sanitize_key' ) ) {
+	function sanitize_key( $value ) {
+		$value = strtolower( (string) $value );
+		return preg_replace( '/[^a-z0-9_\-]/', '', $value );
+	}
+}
 
 function ssw_assert_location( $condition, $message ) {
 	if ( ! $condition ) {
@@ -29,6 +35,17 @@ ssw_assert_location( file_exists( $class_file ), 'class-ssw-locations.php must e
 ssw_assert_location( file_exists( $ledger_file ), 'class-ssw-stock-ledger.php must exist.' );
 require_once $class_file;
 require_once $ledger_file;
+
+$location = SSW_Locations::normalize_location( array(
+	'name'        => '  Zagreb Store  ',
+	'code'        => ' Zagreb Store #1 ',
+	'is_sellable' => '1',
+	'active'      => '1',
+) );
+ssw_assert_location( 'Zagreb Store' === $location['name'], 'Location name is trimmed and sanitized.' );
+ssw_assert_location( 'zagreb-store-1' === $location['code'], 'Location code is normalized to a stable key.' );
+ssw_assert_location( 1 === $location['is_sellable'], 'Sellable flag is normalized.' );
+ssw_assert_location( 1 === $location['active'], 'Active flag is normalized.' );
 
 ssw_assert_location( 12.0 === SSW_Locations::aggregate_sellable( array(
 	array( 'quantity' => 5, 'is_sellable' => 1, 'active' => 1 ),
