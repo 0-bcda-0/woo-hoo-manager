@@ -83,6 +83,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Location_Admin();
 		new SSW_Purchase_Order_Admin();
 		new SSW_Barcode_Admin();
+		new SSW_Analytics_Jobs();
 		new SSW_Ajax();
 		new SSW_Import_Export();
 		new SSW_Low_Stock();
@@ -106,6 +107,8 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-order-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcodes.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcode-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-sales-aggregator.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
 
 	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }
@@ -133,6 +136,7 @@ final class Sheet_Stock_Sync_Woo {
 		$licence_check = wp_next_scheduled( SSW_CRON_LICENSE );
 		if ( $licence_check ) { wp_unschedule_event( $licence_check, SSW_CRON_LICENSE ); }
 		wp_clear_scheduled_hook( SSW_CRON_LICENSE );
+		if ( class_exists( 'SSW_Analytics_Jobs' ) ) { SSW_Analytics_Jobs::clear_schedules(); }
 		delete_option( 'ssw_report_schedule' );
 		delete_transient( SSW_TRANSIENT_ANALYTICS );
 	}

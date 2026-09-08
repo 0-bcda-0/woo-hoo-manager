@@ -4,11 +4,10 @@
  *
  * @package SheetStockSyncWoo
  */
-
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SSW_DB_SCHEMA_VERSION' ) ) {
-	define( 'SSW_DB_SCHEMA_VERSION', 5 );
+	define( 'SSW_DB_SCHEMA_VERSION', 6 );
 }
 
 final class SSW_DB {
@@ -31,6 +30,7 @@ final class SSW_DB {
 			case 3: self::migration_3(); break;
 			case 4: self::migration_4(); break;
 			case 5: self::migration_5(); break;
+			case 6: self::migration_6(); break;
 		}
 	}
 
@@ -84,5 +84,11 @@ final class SSW_DB {
 		self::ensure_dbdelta();
 		require_once __DIR__ . '/migrations/class-ssw-migration-5-barcodes.php';
 		SSW_Migration_5_Barcodes::run();
+	}
+
+	private static function migration_6() {
+		self::ensure_dbdelta();
+		require_once __DIR__ . '/migrations/class-ssw-migration-6-analytics.php';
+		SSW_Migration_6_Analytics::run();
 	}
 }
