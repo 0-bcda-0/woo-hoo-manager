@@ -38,3 +38,5 @@ jobs:
         run: php tests/test-barcodes.php
       - name: Run analytics aggregation test
         run: php tests/test-analytics-aggregation.php
+      - name: Run analytics job policy test
+        run: php tests/test-analytics-jobs.php
