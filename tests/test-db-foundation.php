@@ -62,15 +62,18 @@ require_once $class_file;
 
 ssw_assert( class_exists( 'SSW_DB' ), 'SSW_DB class must exist.' );
 ssw_assert( defined( 'SSW_DB_SCHEMA_VERSION' ), 'SSW_DB_SCHEMA_VERSION must be defined.' );
-ssw_assert( '2' === (string) SSW_DB_SCHEMA_VERSION, 'Supplier schema raises version to 2.' );
+ssw_assert( '3' === (string) SSW_DB_SCHEMA_VERSION, 'Location ledger schema raises version to 3.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( '2' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 2.' );
-ssw_assert( 3 === count( $ssw_test_dbdelta_calls ), 'First upgrade runs metadata plus two supplier table dbDelta calls.' );
+ssw_assert( '3' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 3.' );
+ssw_assert( 6 === count( $ssw_test_dbdelta_calls ), 'First upgrade runs metadata, supplier tables and three location/ledger tables.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[1], 'ssw_suppliers' ), 'Supplier table migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[2], 'ssw_supplier_products' ), 'Supplier-product table migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[3], 'ssw_locations' ), 'Locations table migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[4], 'ssw_location_stock' ), 'Location stock table migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[5], 'ssw_stock_movements' ), 'Stock movement table migration is present.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( 3 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
+ssw_assert( 6 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
 
 fwrite( STDOUT, "PASS: database migration foundation\n" );
