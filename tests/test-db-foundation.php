@@ -62,13 +62,15 @@ require_once $class_file;
 
 ssw_assert( class_exists( 'SSW_DB' ), 'SSW_DB class must exist.' );
 ssw_assert( defined( 'SSW_DB_SCHEMA_VERSION' ), 'SSW_DB_SCHEMA_VERSION must be defined.' );
-ssw_assert( '1' === (string) SSW_DB_SCHEMA_VERSION, 'Initial schema version must be 1.' );
+ssw_assert( '2' === (string) SSW_DB_SCHEMA_VERSION, 'Supplier schema raises version to 2.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( '1' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 1.' );
-ssw_assert( 1 === count( $ssw_test_dbdelta_calls ), 'First upgrade runs the version-1 migration exactly once.' );
+ssw_assert( '2' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 2.' );
+ssw_assert( 3 === count( $ssw_test_dbdelta_calls ), 'First upgrade runs metadata plus two supplier table dbDelta calls.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[1], 'ssw_suppliers' ), 'Supplier table migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[2], 'ssw_supplier_products' ), 'Supplier-product table migration is present.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( 1 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migration 1.' );
+ssw_assert( 3 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
 
 fwrite( STDOUT, "PASS: database migration foundation\n" );
