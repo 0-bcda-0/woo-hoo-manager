@@ -8,6 +8,7 @@ on:
       - phase-0-db-migrations
       - phase-1-suppliers
       - phase-2-location-ledger
+      - phase-3-purchase-orders
 
 jobs:
   foundation:
@@ -33,3 +34,6 @@ jobs:
 
       - name: Run location ledger test
         run: php tests/test-location-ledger.php
+
+      - name: Run purchase order workflow test
+        run: php tests/test-purchase-orders.php
