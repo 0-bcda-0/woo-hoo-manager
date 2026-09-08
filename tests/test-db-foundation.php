@@ -34,11 +34,11 @@ ssw_assert( file_exists( $class_file ), 'class-ssw-db.php must exist.' );
 require_once $class_file;
 ssw_assert( class_exists( 'SSW_DB' ), 'SSW_DB class must exist.' );
 ssw_assert( defined( 'SSW_DB_SCHEMA_VERSION' ), 'SSW_DB_SCHEMA_VERSION must be defined.' );
-ssw_assert( '8' === (string) SSW_DB_SCHEMA_VERSION, 'Bundle aggregation raises schema version to 8.' );
+ssw_assert( '9' === (string) SSW_DB_SCHEMA_VERSION, 'Smart Alerts raises schema version to 9.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( '8' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 8.' );
-ssw_assert( 18 === count( $ssw_test_dbdelta_calls ), 'First upgrade creates all approved foundation and bundle aggregation tables.' );
+ssw_assert( '9' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 9.' );
+ssw_assert( 19 === count( $ssw_test_dbdelta_calls ), 'First upgrade creates all approved foundation, bundle and alert tables.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[1], 'ssw_suppliers' ), 'Supplier table migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[2], 'ssw_supplier_products' ), 'Supplier-product table migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[3], 'ssw_locations' ), 'Locations table migration is present.' );
@@ -54,9 +54,10 @@ ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[12], 'ssw_inventory_snapsh
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[13], 'ssw_product_metrics_daily' ), 'Product metrics migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[14], 'ssw_forecasts' ), 'Forecast snapshot migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[15], 'ssw_bundle_pairs' ), 'Bundle pair table migration is present.' );
-ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[16], 'ssw_bundle_product_orders' ), 'Bundle product order counters migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[16], 'ssw_bundle_product_orders' ), 'Bundle product counters migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[17], 'ssw_bundle_processed_orders' ), 'Bundle processed-order guard migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[18], 'ssw_alerts' ), 'Smart Alerts migration is present.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( 18 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
+ssw_assert( 19 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
 fwrite( STDOUT, "PASS: database migration foundation\n" );
