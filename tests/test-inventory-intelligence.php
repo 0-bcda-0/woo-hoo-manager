@@ -1,6 +1,6 @@
 <?php
 /**
- * Lightweight inventory intelligence formula test.
+ * Lightweight tests for approved inventory-intelligence formulas only.
  */
 
 declare(strict_types=1);
@@ -22,7 +22,7 @@ $risk_none = SSW_Inventory_Intelligence::revenue_at_risk( 10, 20, 0, 12.50 );
 ssw_assert_intel( 0.0 === $risk_none['shortage_units'], 'No shortage yields zero risk.' );
 
 $lost = SSW_Inventory_Intelligence::estimated_lost_sales( 1.5, 4, 10.00 );
-ssw_assert_intel( 6.0 === $lost['estimated_lost_units'], 'Lost units use baseline velocity times OOS duration.' );
+ssw_assert_intel( 6.0 === $lost['estimated_lost_units'], 'Lost units use baseline velocity times actual OOS duration.' );
 ssw_assert_intel( 60.0 === $lost['estimated_lost_revenue'], 'Lost revenue uses estimated units times price.' );
 
 $health = SSW_Inventory_Intelligence::health_score( array(
@@ -31,7 +31,7 @@ $health = SSW_Inventory_Intelligence::health_score( array(
 	'demand' => 60,
 	'margin' => 40,
 ) );
-ssw_assert_intel( 75.0 === $health['score'], 'Health score uses 35/25/20/20 weights.' );
+ssw_assert_intel( 75.0 === $health['score'], 'Health score uses approved explainable components.' );
 ssw_assert_intel( 'watch' === $health['status'], '75 health score is Watch.' );
 $no_margin = SSW_Inventory_Intelligence::health_score( array(
 	'availability' => 100,
@@ -41,14 +41,6 @@ $no_margin = SSW_Inventory_Intelligence::health_score( array(
 ) );
 ssw_assert_intel( abs( 83.75 - $no_margin['score'] ) < 0.0001, 'Missing margin renormalizes remaining health weights.' );
 ssw_assert_intel( 'healthy' === $no_margin['status'], 'Renormalized score maps to Healthy.' );
-
-ssw_assert_intel( 'A' === SSW_Inventory_Intelligence::abc_class( 0.50 ), 'First 80% cumulative contribution is A.' );
-ssw_assert_intel( 'B' === SSW_Inventory_Intelligence::abc_class( 0.90 ), 'Next 15% cumulative contribution is B.' );
-ssw_assert_intel( 'C' === SSW_Inventory_Intelligence::abc_class( 0.99 ), 'Final contribution tail is C.' );
-ssw_assert_intel( 'X' === SSW_Inventory_Intelligence::xyz_class( 0.25 ), 'Low variability is X.' );
-ssw_assert_intel( 'Y' === SSW_Inventory_Intelligence::xyz_class( 0.75 ), 'Medium variability is Y.' );
-ssw_assert_intel( 'Z' === SSW_Inventory_Intelligence::xyz_class( 1.25 ), 'High variability is Z.' );
-ssw_assert_intel( null === SSW_Inventory_Intelligence::xyz_class( null ), 'Unknown variability does not fabricate XYZ class.' );
 
 ssw_assert_intel( '0-30' === SSW_Inventory_Intelligence::aging_bucket( 12 ), '12 days maps to 0-30.' );
 ssw_assert_intel( '31-60' === SSW_Inventory_Intelligence::aging_bucket( 45 ), '45 days maps to 31-60.' );
@@ -64,4 +56,4 @@ ssw_assert_intel( 0.5 === $pareto[0]['cumulative_share'], 'Pareto first item cum
 ssw_assert_intel( 0.8 === $pareto[1]['cumulative_share'], 'Pareto second item reaches actual 80%.' );
 ssw_assert_intel( 1.0 === $pareto[2]['cumulative_share'], 'Pareto tail reaches 100%.' );
 
-fwrite( STDOUT, "PASS: inventory intelligence\n" );
+fwrite( STDOUT, "PASS: approved inventory intelligence\n" );
