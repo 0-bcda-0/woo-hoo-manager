@@ -39,13 +39,11 @@ define( 'SSW_OPTION_LICENSE_CHECK', 'ssw_license_check' );
 define( 'SSW_CRON_LICENSE', 'ssw_license_check_event' );
 
 /**
- * The settings helper has no WooCommerce dependency, and the activation
- * hook needs it before `plugins_loaded` (and therefore before init(), and
- * before the WooCommerce-active check) ever runs on the activation
- * request. Load it unconditionally, right away, rather than from inside
- * includes().
+ * These helpers have no WooCommerce dependency, and activation hooks need
+ * them before `plugins_loaded` and init() run on the activation request.
  */
 require_once SSW_PLUGIN_DIR . 'includes/class-ssw-settings.php';
+require_once SSW_PLUGIN_DIR . 'includes/class-ssw-db.php';
 
 /**
  * Main plugin bootstrap class. Kept intentionally small — it just wires
@@ -144,6 +142,7 @@ final class Sheet_Stock_Sync_Woo {
 			return;
 		}
 
+		SSW_DB::maybe_upgrade();
 		$this->includes();
 
 		new SSW_License();
@@ -205,6 +204,8 @@ final class Sheet_Stock_Sync_Woo {
 				array( 'back_link' => true )
 			);
 		}
+
+		SSW_DB::maybe_upgrade();
 
 		if ( false === get_option( SSW_OPTION_SETTINGS ) ) {
 			add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() );
