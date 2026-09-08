@@ -13,6 +13,7 @@ on:
       - phase-5-analytics-aggregation
       - phase-6-demand-forecasting
       - phase-7-inventory-intelligence
+      - phase-8-bundle-recommendations
 
 jobs:
   foundation:
@@ -48,3 +49,5 @@ jobs:
         run: php tests/test-metrics-engine.php
       - name: Run approved inventory intelligence test
         run: php tests/test-inventory-intelligence.php
+      - name: Run approved bundle recommendation test
+        run: php tests/test-bundle-recommendations.php
