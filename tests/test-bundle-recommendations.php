@@ -15,6 +15,9 @@ $class_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-bun
 ssw_assert_bundle( file_exists( $class_file ), 'Bundle opportunity class must exist.' );
 require_once $class_file;
 
+$pairs = SSW_Bundle_Opportunities::product_pairs( array( 3, 2, 2, 1 ) );
+ssw_assert_bundle( array( array( 1, 2 ), array( 1, 3 ), array( 2, 3 ) ) === $pairs, 'One order yields unique normalized product pairs without self-pairs.' );
+
 $evidence = SSW_Bundle_Opportunities::evidence( 12, 40, 30, 100 );
 ssw_assert_bundle( abs( 0.12 - $evidence['support'] ) < 0.00001, 'Support is pair orders divided by total analysed orders.' );
 ssw_assert_bundle( abs( 0.30 - $evidence['attach_rate_a'] ) < 0.00001, 'Attach rate A is pair orders divided by A orders.' );
