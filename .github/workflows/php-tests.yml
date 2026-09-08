@@ -16,6 +16,7 @@ on:
       - phase-8-bundle-recommendations
       - phase-9-smart-alerts
       - phase-10-operations-cockpit
+      - phase-11-90-day-planning
 
 jobs:
   foundation:
@@ -57,3 +58,5 @@ jobs:
         run: php tests/test-smart-alerts.php
       - name: Run approved operations cockpit test
         run: php tests/test-action-center.php
+      - name: Run approved 90-day purchasing planner test
+        run: php tests/test-purchasing-planner.php
