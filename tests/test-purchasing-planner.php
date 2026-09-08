@@ -79,4 +79,10 @@ ssw_assert_plan( 200.0 === $budget['over_by'], 'Budget warning quantifies the ov
 ssw_assert_plan( 'within_budget' === SSW_Purchasing_Planner::budget_pressure( 800, 1000 )['status'], 'Plan inside budget is not warned.' );
 ssw_assert_plan( 'not_configured' === SSW_Purchasing_Planner::budget_pressure( 800, null )['status'], 'Missing budget is explicit rather than fabricated.' );
 
+$budgets = SSW_Purchasing_Planner::parse_budget_lines( "EUR=5000\nUSD = 1200.50\ninvalid\nGBP=-10\nEUR=5500" );
+ssw_assert_plan( 5500.0 === $budgets['EUR'], 'Later valid budget line replaces earlier value for the same currency.' );
+ssw_assert_plan( 1200.50 === $budgets['USD'], 'Decimal currency budget is parsed.' );
+ssw_assert_plan( ! isset( $budgets['GBP'] ), 'Negative budgets are rejected.' );
+ssw_assert_plan( ! isset( $budgets['INVALID'] ), 'Malformed lines are ignored.' );
+
 fwrite( STDOUT, "PASS: approved 90-day purchasing planner\n" );
