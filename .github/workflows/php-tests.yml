@@ -1,0 +1,27 @@
+name: PHP Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - phase-0-db-migrations
+
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.1', '8.3']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: Run database foundation test
+        run: php tests/test-db-foundation.php
