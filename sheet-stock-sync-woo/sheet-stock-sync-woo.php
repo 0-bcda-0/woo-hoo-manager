@@ -82,6 +82,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Supplier_Admin();
 		new SSW_Location_Admin();
 		new SSW_Purchase_Order_Admin();
+		new SSW_Barcode_Admin();
 		new SSW_Ajax();
 		new SSW_Import_Export();
 		new SSW_Low_Stock();
@@ -103,6 +104,8 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-location-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-orders.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-order-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcodes.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcode-admin.php';
 	}
 
 	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }

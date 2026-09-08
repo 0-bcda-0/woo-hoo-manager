@@ -9,6 +9,7 @@ on:
       - phase-1-suppliers
       - phase-2-location-ledger
       - phase-3-purchase-orders
+      - phase-4-barcode-workflows
 
 jobs:
   foundation:
@@ -19,21 +20,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-
       - name: Run database foundation test
         run: php tests/test-db-foundation.php
-
       - name: Run supplier domain test
         run: php tests/test-suppliers.php
-
       - name: Run location ledger test
         run: php tests/test-location-ledger.php
-
       - name: Run purchase order workflow test
         run: php tests/test-purchase-orders.php
+      - name: Run barcode workflow test
+        run: php tests/test-barcodes.php
