@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - phase-0-db-migrations
+      - phase-1-suppliers
 
 jobs:
   foundation:
@@ -25,3 +26,6 @@ jobs:
 
       - name: Run database foundation test
         run: php tests/test-db-foundation.php
+
+      - name: Run supplier domain test
+        run: php tests/test-suppliers.php
