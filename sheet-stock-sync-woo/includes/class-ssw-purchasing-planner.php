@@ -112,4 +112,21 @@ final class SSW_Purchasing_Planner {
 			'utilization_percent' => ( $planned / $budget_value ) * 100.0,
 		);
 	}
+
+	public static function parse_budget_lines( $text ) {
+		$budgets = array();
+		$lines = preg_split( '/\R/', (string) $text );
+		foreach ( $lines as $line ) {
+			$line = trim( $line );
+			if ( '' === $line || false === strpos( $line, '=' ) ) { continue; }
+			$parts = explode( '=', $line, 2 );
+			$currency = strtoupper( trim( $parts[0] ) );
+			$value = str_replace( ',', '.', trim( $parts[1] ) );
+			if ( ! preg_match( '/^[A-Z]{3}$/', $currency ) || ! is_numeric( $value ) ) { continue; }
+			$amount = (float) $value;
+			if ( $amount < 0 ) { continue; }
+			$budgets[ $currency ] = $amount;
+		}
+		return $budgets;
+	}
 }
