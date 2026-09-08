@@ -1,12 +1,17 @@
 <?php
 /**
- * Deterministic Smart Alerts rules and normalization.
+ * Deterministic Smart Alerts rules, persistence and lifecycle.
  *
  * @package SheetStockSyncWoo
  */
 defined( 'ABSPATH' ) || exit;
 
 final class SSW_Alerts {
+
+	private static function table() {
+		global $wpdb;
+		return $wpdb->prefix . 'ssw_alerts';
+	}
 
 	public static function normalize_severity( $severity ) {
 		$severity = strtolower( trim( (string) $severity ) );
@@ -50,16 +55,70 @@ final class SSW_Alerts {
 		if ( null !== $health && $health < 40 ) {
 			$alerts[] = self::make( 'low_health', 'warning', $product_id, array( 'health_score' => $health ) );
 		}
-		if ( $days_since_sale >= 180 && $available > 0 ) {
+		if ( $days_since_sale >= 180 ) {
 			$alerts[] = self::make( 'dead_stock', 'warning', $product_id, array( 'days_since_last_sale' => $days_since_sale, 'available_quantity' => $available ) );
-		} elseif ( $days_since_sale >= 180 && $available <= 0 ) {
-			// Still surface the stale-demand/dead-stock condition as a historical inventory signal.
-			$alerts[] = self::make( 'dead_stock', 'warning', $product_id, array( 'days_since_last_sale' => $days_since_sale ) );
 		}
 		if ( ! empty( $data['bundle_opportunity'] ) ) {
 			$alerts[] = self::make( 'bundle_opportunity', 'opportunity', $product_id, array( 'bundle_opportunity' => true ) );
 		}
 		return $alerts;
+	}
+
+	public static function evaluate_purchase_order( $data ) {
+		$po_id = abs( (int) ( isset( $data['purchase_order_id'] ) ? $data['purchase_order_id'] : 0 ) );
+		$status = strtolower( (string) ( isset( $data['status'] ) ? $data['status'] : '' ) );
+		$expected = isset( $data['expected_arrival'] ) ? substr( (string) $data['expected_arrival'], 0, 10 ) : '';
+		$today = isset( $data['today'] ) ? substr( (string) $data['today'], 0, 10 ) : gmdate( 'Y-m-d' );
+		if ( ! $po_id || ! $expected || ! in_array( $status, array( 'ordered', 'shipped', 'partially_received' ), true ) || $expected >= $today ) { return array(); }
+		$context = array( 'expected_arrival' => $expected, 'status' => $status );
+		return array( array(
+			'type' => 'late_purchase_order',
+			'severity' => 'warning',
+			'purchase_order_id' => $po_id,
+			'dedupe_key' => self::dedupe_key( 'late_purchase_order', array( 'purchase_order_id' => $po_id ) ),
+			'context' => $context,
+		) );
+	}
+
+	public static function persist( $alert ) {
+		global $wpdb;
+		$table = self::table();
+		$type = sanitize_key( isset( $alert['type'] ) ? $alert['type'] : '' );
+		if ( ! $type ) { return false; }
+		$product_id = ! empty( $alert['product_id'] ) ? absint( $alert['product_id'] ) : null;
+		$po_id = ! empty( $alert['purchase_order_id'] ) ? absint( $alert['purchase_order_id'] ) : null;
+		$identity = $product_id ? array( 'product_id' => $product_id ) : array( 'purchase_order_id' => $po_id );
+		$key = ! empty( $alert['dedupe_key'] ) ? substr( (string) $alert['dedupe_key'], 0, 64 ) : self::dedupe_key( $type, $identity );
+		$severity = self::normalize_severity( isset( $alert['severity'] ) ? $alert['severity'] : 'warning' );
+		$context = wp_json_encode( isset( $alert['context'] ) ? $alert['context'] : array() );
+		$now = current_time( 'mysql' );
+		$sql = "INSERT INTO {$table} (type,severity,product_id,purchase_order_id,dedupe_key,state,context_json,first_seen,last_seen,updated_by) VALUES (%s,%s,%d,%d,%s,'open',%s,%s,%s,0) ON DUPLICATE KEY UPDATE severity=VALUES(severity), context_json=VALUES(context_json), last_seen=VALUES(last_seen), state=IF(state='resolved','open',state), resolved_at=IF(state='resolved',NULL,resolved_at)";
+		return false !== $wpdb->query( $wpdb->prepare( $sql, $type, $severity, (int) $product_id, (int) $po_id, $key, $context, $now, $now ) );
+	}
+
+	public static function set_state( $id, $state, $snoozed_until = null, $user_id = 0 ) {
+		global $wpdb;
+		$table = self::table();
+		$id = absint( $id );
+		$state = self::normalize_state( $state );
+		if ( ! $id ) { return false; }
+		$resolved_at = 'resolved' === $state ? current_time( 'mysql' ) : null;
+		return false !== $wpdb->update(
+			$table,
+			array( 'state' => $state, 'snoozed_until' => $snoozed_until, 'resolved_at' => $resolved_at, 'updated_by' => absint( $user_id ) ),
+			array( 'id' => $id ),
+			array( '%s', '%s', '%s', '%d' ),
+			array( '%d' )
+		);
+	}
+
+	public static function list_active( $limit = 100 ) {
+		global $wpdb;
+		$table = self::table();
+		$limit = min( 250, max( 1, absint( $limit ) ) );
+		$now = current_time( 'mysql' );
+		$sql = "SELECT * FROM {$table} WHERE state='open' OR (state='snoozed' AND (snoozed_until IS NULL OR snoozed_until<=%s)) ORDER BY FIELD(severity,'critical','warning','opportunity'), last_seen DESC LIMIT %d";
+		return $wpdb->get_results( $wpdb->prepare( $sql, $now, $limit ), ARRAY_A );
 	}
 
 	private static function make( $type, $severity, $product_id, $context ) {
