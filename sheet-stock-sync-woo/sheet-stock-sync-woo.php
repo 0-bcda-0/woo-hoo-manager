@@ -72,6 +72,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Barcode_Admin();
 		new SSW_Intelligence_Admin();
 		new SSW_Bundle_Admin();
+		new SSW_Alert_Admin();
 		new SSW_Analytics_Jobs();
 		new SSW_Ajax();
 		new SSW_Import_Export();
@@ -103,6 +104,9 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-opportunities.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-aggregator.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alerts.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-evaluator.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
 	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }
