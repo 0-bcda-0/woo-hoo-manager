@@ -87,6 +87,7 @@ final class Sheet_Stock_Sync_Woo {
 
 		SSW_DB::maybe_upgrade();
 		$this->includes();
+		SSW_Locations::ensure_main_warehouse();
 
 		new SSW_License();
 		new SSW_Admin();
@@ -107,6 +108,8 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-ajax.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-suppliers.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-supplier-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-ledger.php';
 	}
 
 	private function is_woocommerce_active() {
@@ -130,6 +133,8 @@ final class Sheet_Stock_Sync_Woo {
 		}
 
 		SSW_DB::maybe_upgrade();
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
+		SSW_Locations::ensure_main_warehouse();
 
 		if ( false === get_option( SSW_OPTION_SETTINGS ) ) {
 			add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() );
