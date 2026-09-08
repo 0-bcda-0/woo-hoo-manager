@@ -92,6 +92,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_License();
 		new SSW_Admin();
 		new SSW_Supplier_Admin();
+		new SSW_Location_Admin();
 		new SSW_Ajax();
 		new SSW_Import_Export();
 		new SSW_Low_Stock();
@@ -110,6 +111,7 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-supplier-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-ledger.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-location-admin.php';
 	}
 
 	private function is_woocommerce_active() {
