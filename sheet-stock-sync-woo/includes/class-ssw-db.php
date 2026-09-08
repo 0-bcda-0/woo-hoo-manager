@@ -7,7 +7,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SSW_DB_SCHEMA_VERSION' ) ) {
-	define( 'SSW_DB_SCHEMA_VERSION', 7 );
+	define( 'SSW_DB_SCHEMA_VERSION', 8 );
 }
 
 final class SSW_DB {
@@ -32,6 +32,7 @@ final class SSW_DB {
 			case 5: self::migration_5(); break;
 			case 6: self::migration_6(); break;
 			case 7: self::migration_7(); break;
+			case 8: self::migration_8(); break;
 		}
 	}
 
@@ -80,22 +81,24 @@ final class SSW_DB {
 		require_once __DIR__ . '/migrations/class-ssw-migration-4-purchase-orders.php';
 		SSW_Migration_4_Purchase_Orders::run();
 	}
-
 	private static function migration_5() {
 		self::ensure_dbdelta();
 		require_once __DIR__ . '/migrations/class-ssw-migration-5-barcodes.php';
 		SSW_Migration_5_Barcodes::run();
 	}
-
 	private static function migration_6() {
 		self::ensure_dbdelta();
 		require_once __DIR__ . '/migrations/class-ssw-migration-6-analytics.php';
 		SSW_Migration_6_Analytics::run();
 	}
-
 	private static function migration_7() {
 		self::ensure_dbdelta();
 		require_once __DIR__ . '/migrations/class-ssw-migration-7-forecasting.php';
 		SSW_Migration_7_Forecasting::run();
+	}
+	private static function migration_8() {
+		self::ensure_dbdelta();
+		require_once __DIR__ . '/migrations/class-ssw-migration-8-bundles.php';
+		SSW_Migration_8_Bundles::run();
 	}
 }

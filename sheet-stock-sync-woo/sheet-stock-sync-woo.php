@@ -39,12 +39,7 @@ require_once SSW_PLUGIN_DIR . 'includes/class-ssw-db.php';
 
 final class Sheet_Stock_Sync_Woo {
 	private static $instance = null;
-
-	public static function instance() {
-		if ( null === self::$instance ) { self::$instance = new self(); }
-		return self::$instance;
-	}
-
+	public static function instance() { if ( null === self::$instance ) { self::$instance = new self(); } return self::$instance; }
 	private function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
 		add_action( 'init', array( $this, 'load_textdomain' ) );
@@ -53,30 +48,22 @@ final class Sheet_Stock_Sync_Woo {
 		register_activation_hook( SSW_PLUGIN_FILE, array( $this, 'on_activate' ) );
 		register_deactivation_hook( SSW_PLUGIN_FILE, array( $this, 'on_deactivate' ) );
 	}
-
 	public function load_textdomain() { load_plugin_textdomain( 'sheet-stock-sync-woo', false, dirname( SSW_PLUGIN_BASENAME ) . '/languages' ); }
-
 	public function filter_locale( $locale, $domain ) {
 		if ( 'sheet-stock-sync-woo' !== $domain ) { return $locale; }
 		$chosen = SSW_Settings::get( 'admin_language', '' );
 		return ( '' !== $chosen && array_key_exists( $chosen, SSW_Settings::languages() ) ) ? $chosen : $locale;
 	}
-
 	public function declare_compatibility() {
 		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', SSW_PLUGIN_FILE, true );
 		}
 	}
-
 	public function init() {
-		if ( ! $this->is_woocommerce_active() ) {
-			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
-			return;
-		}
+		if ( ! $this->is_woocommerce_active() ) { add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) ); return; }
 		SSW_DB::maybe_upgrade();
 		$this->includes();
 		SSW_Locations::ensure_main_warehouse();
-
 		new SSW_License();
 		new SSW_Admin();
 		new SSW_Supplier_Admin();
@@ -84,12 +71,12 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Purchase_Order_Admin();
 		new SSW_Barcode_Admin();
 		new SSW_Intelligence_Admin();
+		new SSW_Bundle_Admin();
 		new SSW_Analytics_Jobs();
 		new SSW_Ajax();
 		new SSW_Import_Export();
 		new SSW_Low_Stock();
 	}
-
 	private function includes() {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-license.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-builtin.php';
@@ -113,15 +100,13 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-metrics-engine.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-inventory-intelligence.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-intelligence-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-opportunities.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-aggregator.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
-
 	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }
-
-	public function woocommerce_missing_notice() {
-		?><div class="notice notice-error"><p><?php esc_html_e( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ); ?></p></div><?php
-	}
-
+	public function woocommerce_missing_notice() { ?><div class="notice notice-error"><p><?php esc_html_e( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ); ?></p></div><?php }
 	public function on_activate() {
 		if ( ! $this->is_woocommerce_active() ) {
 			deactivate_plugins( SSW_PLUGIN_BASENAME );
@@ -133,7 +118,6 @@ final class Sheet_Stock_Sync_Woo {
 		if ( false === get_option( SSW_OPTION_SETTINGS ) ) { add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() ); }
 		if ( ! get_option( SSW_OPTION_INSTALLED_AT ) ) { add_option( SSW_OPTION_INSTALLED_AT, time(), '', false ); }
 	}
-
 	public function on_deactivate() {
 		$timestamp = wp_next_scheduled( SSW_CRON_LOW_STOCK );
 		if ( $timestamp ) { wp_unschedule_event( $timestamp, SSW_CRON_LOW_STOCK ); }
