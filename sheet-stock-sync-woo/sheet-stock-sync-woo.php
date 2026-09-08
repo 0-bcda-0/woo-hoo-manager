@@ -2,15 +2,12 @@
 /**
  * Plugin Name:       Stock Manager for WooCommerce
  * Plugin URI:        https://example.com/sheet-stock-sync-woo
- * Description:       Edit stock in one table, see at a glance what is running low, get a reorder e-mail with a ready purchase order, and follow what actually sells — plus CSV/Excel bulk import and export.
+ * Description:       Inventory forecasting, replenishment, stock operations and purchasing intelligence for WooCommerce.
  * Version:           3.3.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * WC requires at least: 5.0
- * Author:            Your Name
- * Author URI:        https://example.com
- * License:            GPLv2 or later
- * License URI:        https://www.gnu.org/licenses/gpl-2.0.html
+ * License:           GPLv2 or later
  * Text Domain:       sheet-stock-sync-woo
  * Domain Path:       /languages
  * @package SheetStockSyncWoo
@@ -39,7 +36,14 @@ require_once SSW_PLUGIN_DIR . 'includes/class-ssw-db.php';
 
 final class Sheet_Stock_Sync_Woo {
 	private static $instance = null;
-	public static function instance() { if ( null === self::$instance ) { self::$instance = new self(); } return self::$instance; }
+
+	public static function instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
 	private function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
 		add_action( 'init', array( $this, 'load_textdomain' ) );
@@ -48,91 +52,143 @@ final class Sheet_Stock_Sync_Woo {
 		register_activation_hook( SSW_PLUGIN_FILE, array( $this, 'on_activate' ) );
 		register_deactivation_hook( SSW_PLUGIN_FILE, array( $this, 'on_deactivate' ) );
 	}
-	public function load_textdomain() { load_plugin_textdomain( 'sheet-stock-sync-woo', false, dirname( SSW_PLUGIN_BASENAME ) . '/languages' ); }
+
+	public function load_textdomain() {
+		load_plugin_textdomain( 'sheet-stock-sync-woo', false, dirname( SSW_PLUGIN_BASENAME ) . '/languages' );
+	}
+
 	public function filter_locale( $locale, $domain ) {
-		if ( 'sheet-stock-sync-woo' !== $domain ) { return $locale; }
+		if ( 'sheet-stock-sync-woo' !== $domain ) {
+			return $locale;
+		}
 		$chosen = SSW_Settings::get( 'admin_language', '' );
 		return ( '' !== $chosen && array_key_exists( $chosen, SSW_Settings::languages() ) ) ? $chosen : $locale;
 	}
+
 	public function declare_compatibility() {
 		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', SSW_PLUGIN_FILE, true );
 		}
 	}
+
 	public function init() {
-		if ( ! $this->is_woocommerce_active() ) { add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) ); return; }
+		if ( ! $this->is_woocommerce_active() ) {
+			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+			return;
+		}
+
 		SSW_DB::maybe_upgrade();
 		$this->includes();
 		SSW_Locations::ensure_main_warehouse();
+		SSW_Bundle_Kits::register_hooks();
+
 		new SSW_License();
 		new SSW_Admin();
 		new SSW_Supplier_Admin();
-		new SSW_Purchase_Order_Admin();
 		new SSW_Purchasing_Plan_Admin();
 		new SSW_What_If_Admin();
 		new SSW_Stock_Operations_Admin();
 		new SSW_Intelligence_Admin();
 		new SSW_Bundle_Admin();
+		new SSW_Bundle_Kit_Admin();
 		new SSW_Alert_Admin();
+		new SSW_Product_360_Admin();
+		new SSW_Forecast_Accuracy_Admin();
+		new SSW_Weekly_Report_Service();
+		new SSW_Weekly_Report_Admin();
 		new SSW_Analytics_Jobs();
 		new SSW_Ajax();
 		new SSW_Import_Export();
 		new SSW_Low_Stock();
 	}
+
 	private function includes() {
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-license.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-builtin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-import-export.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-lowstock.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-chart.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-ajax.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-suppliers.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-supplier-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-ledger.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-operations-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-orders.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-order-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchasing-planner.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchasing-plan-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-what-if.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-what-if-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-sales-aggregator.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-demand-forecast.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-metrics-engine.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-inventory-intelligence.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-intelligence-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-opportunities.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-aggregator.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-bundle-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alerts.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-evaluator.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
+		$files = array(
+			'class-ssw-license.php',
+			'class-ssw-builtin.php',
+			'class-ssw-import-export.php',
+			'class-ssw-lowstock.php',
+			'class-ssw-analytics.php',
+			'class-ssw-chart.php',
+			'class-ssw-admin.php',
+			'class-ssw-ajax.php',
+			'class-ssw-suppliers.php',
+			'class-ssw-supplier-admin.php',
+			'class-ssw-locations.php',
+			'class-ssw-stock-ledger.php',
+			'class-ssw-stock-operations-admin.php',
+			'class-ssw-purchase-orders.php',
+			'class-ssw-purchasing-planner.php',
+			'class-ssw-purchasing-plan-admin.php',
+			'class-ssw-what-if.php',
+			'class-ssw-what-if-admin.php',
+			'class-ssw-sales-aggregator.php',
+			'class-ssw-demand-forecast.php',
+			'class-ssw-metrics-engine.php',
+			'class-ssw-inventory-intelligence.php',
+			'class-ssw-intelligence-admin.php',
+			'class-ssw-bundle-opportunities.php',
+			'class-ssw-bundle-aggregator.php',
+			'class-ssw-bundle-admin.php',
+			'class-ssw-bundle-kits.php',
+			'class-ssw-bundle-kit-admin.php',
+			'class-ssw-alerts.php',
+			'class-ssw-anomaly-detector.php',
+			'class-ssw-alert-evaluator.php',
+			'class-ssw-alert-admin.php',
+			'class-ssw-seasonality.php',
+			'class-ssw-seasonal-forecast-job.php',
+			'class-ssw-forecast-accuracy.php',
+			'class-ssw-product-360-admin.php',
+			'class-ssw-forecast-accuracy-admin.php',
+			'class-ssw-weekly-report.php',
+			'class-ssw-weekly-report-service.php',
+			'class-ssw-weekly-report-admin.php',
+			'class-ssw-analytics-jobs.php',
+		);
+
+		foreach ( $files as $file ) {
+			require_once SSW_PLUGIN_DIR . 'includes/' . $file;
+		}
 	}
-	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }
-	public function woocommerce_missing_notice() { ?><div class="notice notice-error"><p><?php esc_html_e( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ); ?></p></div><?php }
+
+	private function is_woocommerce_active() {
+		return class_exists( 'WooCommerce' );
+	}
+
+	public function woocommerce_missing_notice() {
+		?>
+		<div class="notice notice-error"><p><?php esc_html_e( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ); ?></p></div>
+		<?php
+	}
+
 	public function on_activate() {
 		if ( ! $this->is_woocommerce_active() ) {
 			deactivate_plugins( SSW_PLUGIN_BASENAME );
-			wp_die( esc_html__( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active. The plugin has been deactivated.', 'sheet-stock-sync-woo' ), esc_html__( 'Plugin activation error', 'sheet-stock-sync-woo' ), array( 'back_link' => true ) );
+			wp_die( esc_html__( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ) );
 		}
+
 		SSW_DB::maybe_upgrade();
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
 		SSW_Locations::ensure_main_warehouse();
-		if ( false === get_option( SSW_OPTION_SETTINGS ) ) { add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() ); }
-		if ( ! get_option( SSW_OPTION_INSTALLED_AT ) ) { add_option( SSW_OPTION_INSTALLED_AT, time(), '', false ); }
+
+		if ( false === get_option( SSW_OPTION_SETTINGS ) ) {
+			add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() );
+		}
+		if ( ! get_option( SSW_OPTION_INSTALLED_AT ) ) {
+			add_option( SSW_OPTION_INSTALLED_AT, time(), '', false );
+		}
 	}
+
 	public function on_deactivate() {
-		$timestamp = wp_next_scheduled( SSW_CRON_LOW_STOCK );
-		if ( $timestamp ) { wp_unschedule_event( $timestamp, SSW_CRON_LOW_STOCK ); }
 		wp_clear_scheduled_hook( SSW_CRON_LOW_STOCK );
-		$licence_check = wp_next_scheduled( SSW_CRON_LICENSE );
-		if ( $licence_check ) { wp_unschedule_event( $licence_check, SSW_CRON_LICENSE ); }
 		wp_clear_scheduled_hook( SSW_CRON_LICENSE );
-		if ( class_exists( 'SSW_Analytics_Jobs' ) ) { SSW_Analytics_Jobs::clear_schedules(); }
+		if ( class_exists( 'SSW_Analytics_Jobs' ) ) {
+			SSW_Analytics_Jobs::clear_schedules();
+		}
+		if ( class_exists( 'SSW_Weekly_Report_Service' ) ) {
+			SSW_Weekly_Report_Service::clear_schedule();
+		}
 		delete_option( 'ssw_report_schedule' );
 		delete_transient( SSW_TRANSIENT_ANALYTICS );
 	}

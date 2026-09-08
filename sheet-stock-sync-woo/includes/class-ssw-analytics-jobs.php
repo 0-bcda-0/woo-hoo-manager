@@ -12,6 +12,7 @@ final class SSW_Analytics_Jobs {
 	const CRON_SNAPSHOT = 'ssw_inventory_daily_snapshot';
 	const CRON_METRICS  = 'ssw_product_metrics_daily';
 	const CRON_ALERTS   = 'ssw_smart_alerts_evaluate';
+	const CRON_SEASONAL = 'ssw_seasonal_forecast_daily';
 	const SNAPSHOT_CURSOR_OPTION = 'ssw_inventory_snapshot_cursor';
 	const METRICS_CURSOR_OPTION  = 'ssw_metrics_product_cursor';
 
@@ -20,6 +21,7 @@ final class SSW_Analytics_Jobs {
 		add_action( self::CRON_SNAPSHOT, array( $this, 'run_snapshot' ) );
 		add_action( self::CRON_METRICS, array( $this, 'run_metrics' ) );
 		add_action( self::CRON_ALERTS, array( $this, 'run_alerts' ) );
+		add_action( self::CRON_SEASONAL, array( $this, 'run_seasonal' ) );
 		add_action( 'admin_init', array( $this, 'ensure_scheduled' ) );
 	}
 
@@ -29,6 +31,7 @@ final class SSW_Analytics_Jobs {
 		if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) { wp_schedule_event( time() + 300, 'hourly', self::CRON_BACKFILL ); }
 		if ( ! wp_next_scheduled( self::CRON_SNAPSHOT ) ) { wp_schedule_event( strtotime( 'tomorrow 02:15' ), 'daily', self::CRON_SNAPSHOT ); }
 		if ( ! wp_next_scheduled( self::CRON_METRICS ) ) { wp_schedule_event( strtotime( 'tomorrow 03:15' ), 'daily', self::CRON_METRICS ); }
+		if ( ! wp_next_scheduled( self::CRON_SEASONAL ) ) { wp_schedule_event( strtotime( 'tomorrow 03:30' ), 'daily', self::CRON_SEASONAL ); }
 		if ( ! wp_next_scheduled( self::CRON_ALERTS ) ) { wp_schedule_event( strtotime( 'tomorrow 03:45' ), 'daily', self::CRON_ALERTS ); }
 	}
 
@@ -36,10 +39,13 @@ final class SSW_Analytics_Jobs {
 		SSW_Sales_Aggregator::process_order_batch( 100 );
 		SSW_Bundle_Aggregator::process_batch( 100 );
 	}
-
 	public function run_snapshot() { self::capture_snapshot_batch( 200 ); }
 	public function run_metrics() { self::calculate_metrics_batch( 100 ); }
-	public function run_alerts() { SSW_Alert_Evaluator::evaluate_batch( 100 ); }
+	public function run_seasonal() { SSW_Seasonal_Forecast_Job::run_batch( 50 ); }
+	public function run_alerts() {
+		SSW_Alert_Evaluator::evaluate_batch( 100 );
+		SSW_Anomaly_Detector::evaluate_latest_products( 100 );
+	}
 
 	public static function capture_snapshot_batch( $batch_size = 200 ) {
 		global $wpdb;
@@ -95,6 +101,7 @@ final class SSW_Analytics_Jobs {
 		wp_clear_scheduled_hook( self::CRON_BACKFILL );
 		wp_clear_scheduled_hook( self::CRON_SNAPSHOT );
 		wp_clear_scheduled_hook( self::CRON_METRICS );
+		wp_clear_scheduled_hook( self::CRON_SEASONAL );
 		wp_clear_scheduled_hook( self::CRON_ALERTS );
 	}
 }

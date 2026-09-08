@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - finish-approved-features
       - scope-cleanup-original-list
       - phase-5-analytics-aggregation
       - phase-6-demand-forecasting
@@ -50,9 +51,19 @@ jobs:
         run: php tests/test-inventory-intelligence.php
       - name: Run approved bundle recommendation test
         run: php tests/test-bundle-recommendations.php
+      - name: Run approved bundle kit test
+        run: php tests/test-bundles-kits.php
       - name: Run approved smart alert test
         run: php tests/test-smart-alerts.php
+      - name: Run approved anomaly detection test
+        run: php tests/test-anomaly-detection.php
+      - name: Run approved seasonality and forecast accuracy test
+        run: php tests/test-seasonality-accuracy.php
       - name: Run approved 90-day purchasing planner test
         run: php tests/test-purchasing-planner.php
       - name: Run approved what-if simulator test
         run: php tests/test-what-if-simulator.php
+      - name: Run approved weekly executive report test
+        run: php tests/test-weekly-report.php
+      - name: Run runtime scope lock test
+        run: php tests/test-scope-lock-runtime.php
