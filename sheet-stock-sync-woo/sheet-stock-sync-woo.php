@@ -108,6 +108,8 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcodes.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcode-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-sales-aggregator.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-demand-forecast.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-metrics-engine.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
 

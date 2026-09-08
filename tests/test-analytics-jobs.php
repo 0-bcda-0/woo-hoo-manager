@@ -20,5 +20,8 @@ ssw_assert_jobs( 10 === SSW_Analytics_Jobs::normalize_batch_size( 1 ), 'Analytic
 ssw_assert_jobs( 100 === SSW_Analytics_Jobs::normalize_batch_size( 100 ), 'Analytics jobs preserve normal batch size.' );
 ssw_assert_jobs( 250 === SSW_Analytics_Jobs::normalize_batch_size( 1000 ), 'Analytics jobs enforce a maximum batch size.' );
 ssw_assert_jobs( SSW_Analytics_Jobs::CRON_BACKFILL !== SSW_Analytics_Jobs::CRON_SNAPSHOT, 'Backfill and snapshot hooks are distinct.' );
+ssw_assert_jobs( defined( 'SSW_Analytics_Jobs::CRON_METRICS' ), 'Analytics jobs expose a distinct daily metrics hook.' );
+ssw_assert_jobs( SSW_Analytics_Jobs::CRON_METRICS !== SSW_Analytics_Jobs::CRON_SNAPSHOT, 'Metrics and snapshot hooks are distinct.' );
+ssw_assert_jobs( SSW_Analytics_Jobs::CRON_METRICS !== SSW_Analytics_Jobs::CRON_BACKFILL, 'Metrics and backfill hooks are distinct.' );
 
 fwrite( STDOUT, "PASS: analytics job policy\n" );

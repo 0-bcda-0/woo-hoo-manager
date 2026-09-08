@@ -1,6 +1,6 @@
 <?php
 /**
- * Bounded background jobs for analytics aggregation.
+ * Bounded background jobs for analytics aggregation and deterministic metrics.
  *
  * @package SheetStockSyncWoo
  */
@@ -10,11 +10,14 @@ final class SSW_Analytics_Jobs {
 
 	const CRON_BACKFILL = 'ssw_analytics_backfill_batch';
 	const CRON_SNAPSHOT = 'ssw_inventory_daily_snapshot';
+	const CRON_METRICS  = 'ssw_product_metrics_daily';
 	const SNAPSHOT_CURSOR_OPTION = 'ssw_inventory_snapshot_cursor';
+	const METRICS_CURSOR_OPTION  = 'ssw_metrics_product_cursor';
 
 	public function __construct() {
 		add_action( self::CRON_BACKFILL, array( $this, 'run_backfill' ) );
 		add_action( self::CRON_SNAPSHOT, array( $this, 'run_snapshot' ) );
+		add_action( self::CRON_METRICS, array( $this, 'run_metrics' ) );
 		add_action( 'admin_init', array( $this, 'ensure_scheduled' ) );
 	}
 
@@ -29,6 +32,9 @@ final class SSW_Analytics_Jobs {
 		if ( ! wp_next_scheduled( self::CRON_SNAPSHOT ) ) {
 			wp_schedule_event( strtotime( 'tomorrow 02:15' ), 'daily', self::CRON_SNAPSHOT );
 		}
+		if ( ! wp_next_scheduled( self::CRON_METRICS ) ) {
+			wp_schedule_event( strtotime( 'tomorrow 03:15' ), 'daily', self::CRON_METRICS );
+		}
 	}
 
 	public function run_backfill() {
@@ -37,6 +43,10 @@ final class SSW_Analytics_Jobs {
 
 	public function run_snapshot() {
 		self::capture_snapshot_batch( 200 );
+	}
+
+	public function run_metrics() {
+		self::calculate_metrics_batch( 100 );
 	}
 
 	public static function capture_snapshot_batch( $batch_size = 200 ) {
@@ -72,8 +82,31 @@ final class SSW_Analytics_Jobs {
 		return array( 'processed' => $processed, 'complete' => $complete );
 	}
 
+	public static function calculate_metrics_batch( $batch_size = 100 ) {
+		global $wpdb;
+		$limit = self::normalize_batch_size( $batch_size );
+		$last_id = max( 0, absint( get_option( self::METRICS_CURSOR_OPTION, 0 ) ) );
+		$stock_table = $wpdb->prefix . 'ssw_location_stock';
+		$sales_table = $wpdb->prefix . 'ssw_sales_daily';
+		$sql = "SELECT product_id FROM (SELECT DISTINCT product_id FROM {$stock_table} UNION SELECT DISTINCT product_id FROM {$sales_table}) products WHERE product_id > %d ORDER BY product_id ASC LIMIT %d";
+		$product_ids = $wpdb->get_col( $wpdb->prepare( $sql, $last_id, $limit ) );
+		$processed = 0;
+		$cursor = $last_id;
+		foreach ( $product_ids as $product_id ) {
+			$product_id = absint( $product_id );
+			if ( ! $product_id ) { continue; }
+			SSW_Metrics_Engine::calculate_product( $product_id );
+			$cursor = $product_id;
+			$processed++;
+		}
+		$complete = $processed < $limit;
+		update_option( self::METRICS_CURSOR_OPTION, $complete ? 0 : $cursor, false );
+		return array( 'processed' => $processed, 'complete' => $complete, 'cursor' => $complete ? 0 : $cursor );
+	}
+
 	public static function clear_schedules() {
 		wp_clear_scheduled_hook( self::CRON_BACKFILL );
 		wp_clear_scheduled_hook( self::CRON_SNAPSHOT );
+		wp_clear_scheduled_hook( self::CRON_METRICS );
 	}
 }
