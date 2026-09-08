@@ -21,33 +21,21 @@ final class SSW_Analytics_Jobs {
 		add_action( 'admin_init', array( $this, 'ensure_scheduled' ) );
 	}
 
-	public static function normalize_batch_size( $value ) {
-		return max( 10, min( 250, absint( $value ) ) );
-	}
+	public static function normalize_batch_size( $value ) { return max( 10, min( 250, absint( $value ) ) ); }
 
 	public function ensure_scheduled() {
-		if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) {
-			wp_schedule_event( time() + 300, 'hourly', self::CRON_BACKFILL );
-		}
-		if ( ! wp_next_scheduled( self::CRON_SNAPSHOT ) ) {
-			wp_schedule_event( strtotime( 'tomorrow 02:15' ), 'daily', self::CRON_SNAPSHOT );
-		}
-		if ( ! wp_next_scheduled( self::CRON_METRICS ) ) {
-			wp_schedule_event( strtotime( 'tomorrow 03:15' ), 'daily', self::CRON_METRICS );
-		}
+		if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) { wp_schedule_event( time() + 300, 'hourly', self::CRON_BACKFILL ); }
+		if ( ! wp_next_scheduled( self::CRON_SNAPSHOT ) ) { wp_schedule_event( strtotime( 'tomorrow 02:15' ), 'daily', self::CRON_SNAPSHOT ); }
+		if ( ! wp_next_scheduled( self::CRON_METRICS ) ) { wp_schedule_event( strtotime( 'tomorrow 03:15' ), 'daily', self::CRON_METRICS ); }
 	}
 
 	public function run_backfill() {
 		SSW_Sales_Aggregator::process_order_batch( 100 );
+		SSW_Bundle_Aggregator::process_batch( 100 );
 	}
 
-	public function run_snapshot() {
-		self::capture_snapshot_batch( 200 );
-	}
-
-	public function run_metrics() {
-		self::calculate_metrics_batch( 100 );
-	}
+	public function run_snapshot() { self::capture_snapshot_batch( 200 ); }
+	public function run_metrics() { self::calculate_metrics_batch( 100 ); }
 
 	public static function capture_snapshot_batch( $batch_size = 200 ) {
 		global $wpdb;
@@ -72,13 +60,8 @@ final class SSW_Analytics_Jobs {
 			) );
 			$processed++;
 		}
-		if ( $processed < $limit ) {
-			update_option( self::SNAPSHOT_CURSOR_OPTION, 0, false );
-			$complete = true;
-		} else {
-			update_option( self::SNAPSHOT_CURSOR_OPTION, $offset + $processed, false );
-			$complete = false;
-		}
+		if ( $processed < $limit ) { update_option( self::SNAPSHOT_CURSOR_OPTION, 0, false ); $complete = true; }
+		else { update_option( self::SNAPSHOT_CURSOR_OPTION, $offset + $processed, false ); $complete = false; }
 		return array( 'processed' => $processed, 'complete' => $complete );
 	}
 
