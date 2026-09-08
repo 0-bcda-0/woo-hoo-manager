@@ -35,23 +35,22 @@ The existing WordPress/PHP/WooCommerce architecture stays in place. This roadmap
 - Stock adjustment/count/transfer operations backed by the stock ledger.
 
 ### Phase 5 — Required analytics foundation
-This is infrastructure for approved risk, health, dead-stock, GMROI, purchasing forecast and reporting features; it is not a separate user-facing feature.
+Infrastructure only for approved risk, health, dead-stock, GMROI and cash-planning features.
 - Historical sales aggregation.
 - Daily inventory snapshots.
 - Bounded/resumable background jobs.
 
 ### Phase 6 — Required deterministic forecasting foundation
-This is infrastructure only.
+Infrastructure only.
 - Demand velocity windows and weighted velocity.
 - Stock cover and projected stockout.
 - Forecast snapshots.
 - Confidence/data-quality states.
-- No AI forecasting and no automatic stock/PO action.
+- No automatic stock/PO action.
 
-## Next approved work
+## Approved feature implementation
 
 ### Phase 7 — Selected inventory intelligence
-Implement only:
 - Revenue at Risk.
 - Estimated Lost Sales from actual OOS periods.
 - Inventory Health Score.
@@ -60,44 +59,38 @@ Implement only:
 - Pareto analysis.
 - Evidence-backed bundle recommendations.
 
-**Explicit exclusion:** no ABC/XYZ segmentation.
-
 ### Phase 8 — Operations cockpit
 - Smart Alerts with dedupe/snooze/resolve.
 - What Changed? dashboard.
 - Today Action Center.
-- Prioritization and deep links only as needed by those approved features.
+- Prioritization/deep links only for approved workflows.
 
-### Phase 9 — 90-day planning
+### Phase 9 — #36 Cash Flow / Purchasing Forecast
 - 90-day purchasing/cash forecast.
+- Monthly projected inventory spend (e.g. September/October/November).
 - Supplier/week/month cash grouping.
-- Suggested order dates/quantities using existing deterministic inputs.
+- Suggested order dates/quantities using current stock, incoming POs, supplier lead time, MOQ/case size and deterministic demand.
+- Projected revenue where supported by deterministic demand/price inputs.
 - Budget-pressure warnings.
-- What-if simulator for approved scenario inputs.
 - Never automatically place orders.
 
-### Phase 10 — Weekly Executive Report
-- Deterministic weekly report.
-- Week-over-week comparisons.
-- Inventory/risk/purchasing summaries drawn only from approved features.
-- Configurable email delivery.
+### Phase 10 — #37 What-if simulator
+- Temporary scenario inputs only; nothing persists to production stock/settings.
+- Sales/demand increase or decrease.
+- Supplier lead-time change.
+- Reorder-delay/date scenarios.
+- Compare stockouts, Revenue at Risk and required purchasing cash.
 
-### Phase 11 — Optional AI explanation layer
-- Only after deterministic evidence exists.
-- Explanation/summarization of approved metrics and report facts.
-- AI never invents quantities, costs, forecasts or orders.
-- No AI forecast engine.
+### Phase 11 — #39 Navigation consolidation
+Only after approved replacement parity is verified, consolidate approved capabilities into the final information architecture requested by the user. Preserve the existing WordPress/WooCommerce architecture; this is navigation/UX consolidation, not an application rewrite.
 
-### Phase 12 — Navigation consolidation
-Only after replacement parity is verified, consolidate the approved capabilities into the final information architecture requested by the user. Keep the existing WordPress/WooCommerce architecture; this is navigation/UX consolidation, not an application rewrite.
-
-## Removed from active roadmap
-
-The following are not approved and must not be implemented:
+## Explicitly removed / not approved
 - ABC/XYZ segmentation.
 - Product 360 as a separate feature/module.
 - Seasonality-aware forecasting as a separate feature.
 - Forecast-accuracy dashboard/module as a separate feature.
+- Any AI feature or AI explanation layer.
+- Weekly Executive Report.
 - Any other feature outside `docs/SCOPE-LOCK.md`.
 
 ## Engineering constraints
