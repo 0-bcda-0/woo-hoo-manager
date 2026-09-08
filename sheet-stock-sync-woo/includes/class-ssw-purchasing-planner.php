@@ -93,4 +93,23 @@ final class SSW_Purchasing_Planner {
 			'by_month_currency' => $by_month_currency,
 		);
 	}
+
+	public static function budget_pressure( $planned_cash, $budget ) {
+		$planned = max( 0.0, (float) $planned_cash );
+		if ( null === $budget || '' === (string) $budget ) {
+			return array( 'status' => 'not_configured', 'planned_cash' => $planned, 'budget' => null, 'over_by' => 0.0, 'utilization_percent' => null );
+		}
+		$budget_value = max( 0.0, (float) $budget );
+		if ( $budget_value <= 0 ) {
+			return array( 'status' => $planned > 0 ? 'over_budget' : 'within_budget', 'planned_cash' => $planned, 'budget' => $budget_value, 'over_by' => $planned, 'utilization_percent' => null );
+		}
+		$over_by = max( 0.0, $planned - $budget_value );
+		return array(
+			'status' => $over_by > 0 ? 'over_budget' : 'within_budget',
+			'planned_cash' => $planned,
+			'budget' => $budget_value,
+			'over_by' => $over_by,
+			'utilization_percent' => ( $planned / $budget_value ) * 100.0,
+		);
+	}
 }
