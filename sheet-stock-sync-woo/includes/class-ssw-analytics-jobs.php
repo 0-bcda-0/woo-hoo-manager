@@ -1,6 +1,6 @@
 <?php
 /**
- * Bounded background jobs for analytics aggregation and deterministic metrics.
+ * Bounded background jobs for analytics aggregation, metrics and approved alerts.
  *
  * @package SheetStockSyncWoo
  */
@@ -11,6 +11,7 @@ final class SSW_Analytics_Jobs {
 	const CRON_BACKFILL = 'ssw_analytics_backfill_batch';
 	const CRON_SNAPSHOT = 'ssw_inventory_daily_snapshot';
 	const CRON_METRICS  = 'ssw_product_metrics_daily';
+	const CRON_ALERTS   = 'ssw_smart_alerts_evaluate';
 	const SNAPSHOT_CURSOR_OPTION = 'ssw_inventory_snapshot_cursor';
 	const METRICS_CURSOR_OPTION  = 'ssw_metrics_product_cursor';
 
@@ -18,6 +19,7 @@ final class SSW_Analytics_Jobs {
 		add_action( self::CRON_BACKFILL, array( $this, 'run_backfill' ) );
 		add_action( self::CRON_SNAPSHOT, array( $this, 'run_snapshot' ) );
 		add_action( self::CRON_METRICS, array( $this, 'run_metrics' ) );
+		add_action( self::CRON_ALERTS, array( $this, 'run_alerts' ) );
 		add_action( 'admin_init', array( $this, 'ensure_scheduled' ) );
 	}
 
@@ -27,6 +29,7 @@ final class SSW_Analytics_Jobs {
 		if ( ! wp_next_scheduled( self::CRON_BACKFILL ) ) { wp_schedule_event( time() + 300, 'hourly', self::CRON_BACKFILL ); }
 		if ( ! wp_next_scheduled( self::CRON_SNAPSHOT ) ) { wp_schedule_event( strtotime( 'tomorrow 02:15' ), 'daily', self::CRON_SNAPSHOT ); }
 		if ( ! wp_next_scheduled( self::CRON_METRICS ) ) { wp_schedule_event( strtotime( 'tomorrow 03:15' ), 'daily', self::CRON_METRICS ); }
+		if ( ! wp_next_scheduled( self::CRON_ALERTS ) ) { wp_schedule_event( strtotime( 'tomorrow 03:45' ), 'daily', self::CRON_ALERTS ); }
 	}
 
 	public function run_backfill() {
@@ -36,6 +39,7 @@ final class SSW_Analytics_Jobs {
 
 	public function run_snapshot() { self::capture_snapshot_batch( 200 ); }
 	public function run_metrics() { self::calculate_metrics_batch( 100 ); }
+	public function run_alerts() { SSW_Alert_Evaluator::evaluate_batch( 100 ); }
 
 	public static function capture_snapshot_batch( $batch_size = 200 ) {
 		global $wpdb;
@@ -91,5 +95,6 @@ final class SSW_Analytics_Jobs {
 		wp_clear_scheduled_hook( self::CRON_BACKFILL );
 		wp_clear_scheduled_hook( self::CRON_SNAPSHOT );
 		wp_clear_scheduled_hook( self::CRON_METRICS );
+		wp_clear_scheduled_hook( self::CRON_ALERTS );
 	}
 }
