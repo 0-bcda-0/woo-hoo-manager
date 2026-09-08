@@ -73,4 +73,10 @@ $grouped = SSW_Purchasing_Planner::group_cash( array(
 ssw_assert_plan( 150.0 === $grouped['by_supplier_currency']['5:EUR'], 'Supplier EUR cash is grouped without mixing currencies.' );
 ssw_assert_plan( 75.0 === $grouped['by_supplier_currency']['5:USD'], 'Supplier USD cash remains separate.' );
 
+$budget = SSW_Purchasing_Planner::budget_pressure( 1200, 1000 );
+ssw_assert_plan( 'over_budget' === $budget['status'], 'Plan above budget is flagged.' );
+ssw_assert_plan( 200.0 === $budget['over_by'], 'Budget warning quantifies the overage.' );
+ssw_assert_plan( 'within_budget' === SSW_Purchasing_Planner::budget_pressure( 800, 1000 )['status'], 'Plan inside budget is not warned.' );
+ssw_assert_plan( 'not_configured' === SSW_Purchasing_Planner::budget_pressure( 800, null )['status'], 'Missing budget is explicit rather than fabricated.' );
+
 fwrite( STDOUT, "PASS: approved 90-day purchasing planner\n" );
