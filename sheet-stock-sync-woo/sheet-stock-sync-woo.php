@@ -83,6 +83,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Location_Admin();
 		new SSW_Purchase_Order_Admin();
 		new SSW_Barcode_Admin();
+		new SSW_Intelligence_Admin();
 		new SSW_Analytics_Jobs();
 		new SSW_Ajax();
 		new SSW_Import_Export();
@@ -110,6 +111,8 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-sales-aggregator.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-demand-forecast.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-metrics-engine.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-inventory-intelligence.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-intelligence-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
 

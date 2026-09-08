@@ -1,163 +1,110 @@
-# Woo Hoo Manager — Roadmap
+# Woo Hoo Manager — Approved Roadmap
 
-The roadmap is intentionally dependency-aware. Do not implement all features in one giant change.
+> `docs/SCOPE-LOCK.md` is the canonical scope authority. No feature may be added to this roadmap unless the user explicitly approves it.
 
-## Phase 0 — Preserve and baseline
+The existing WordPress/PHP/WooCommerce architecture stays in place. This roadmap is dependency-aware, but technical dependencies are not separate product features.
 
-**Goal:** Import/preserve the current Stock Manager for WooCommerce plugin and establish a safe development baseline.
+## Completed foundation
 
-- Commit the existing plugin source unchanged as the baseline.
-- Document current behavior and version.
-- Add a minimal automated test/lint setup appropriate to the existing codebase without rewriting it.
-- Verify activation, stock table, stock updates, low-stock screen, analytics, import/export, email scheduling, variations, license path and HPOS compatibility.
-- Add database schema versioning/migration runner before introducing custom tables.
+### Phase 0 — Preserve, tests and migrations
+- Preserve existing plugin behavior.
+- PHP 7.4/8.1/8.3 test/syntax gates.
+- Versioned retry-safe DB migrations.
+- Installable WordPress ZIP build.
 
-**Exit gate:** Existing features still work and a rollback point exists.
+### Phase 1 — Suppliers
+- Supplier CRUD.
+- Product-supplier relationships.
+- Cost, currency, MOQ, pack size, lead time and preferred supplier.
 
-## Phase 1 — Operational data foundation
+### Phase 2 — Multi-location stock foundation
+- Main warehouse migration.
+- Location balances.
+- Immutable stock movement ledger.
+- Manual adjustments and Woo aggregate reconciliation.
 
-**Goal:** Build the trustworthy inventory ledger and master data needed by everything else.
+### Phase 3 — Purchase Orders
+- Persistent PO headers/items/statuses.
+- Partial/full receiving.
+- Idempotent receipt handling.
+- Receiving into selected warehouse/location.
 
-- Suppliers and supplier-product relationships.
-- Purchase cost, MOQ, case size and lead time.
-- Locations with automatic `Main warehouse` migration.
-- Location balances and immutable stock movement ledger.
-- Manual stock adjustments with reason/note.
-- Barcode mappings.
+### Phase 4 — Barcode workflows
+- Barcode mapping/lookup.
+- Mobile-friendly browser workflow with manual fallback.
+- Stock adjustment/count/transfer operations backed by the stock ledger.
+
+### Phase 5 — Required analytics foundation
+This is infrastructure for approved risk, health, dead-stock, GMROI, purchasing forecast and reporting features; it is not a separate user-facing feature.
+- Historical sales aggregation.
 - Daily inventory snapshots.
-- Historical order aggregation/backfill framework.
+- Bounded/resumable background jobs.
 
-**Exit gate:** Aggregate Woo stock and location stock reconcile; every plugin-driven stock change is auditable.
+### Phase 6 — Required deterministic forecasting foundation
+This is infrastructure only.
+- Demand velocity windows and weighted velocity.
+- Stock cover and projected stockout.
+- Forecast snapshots.
+- Confidence/data-quality states.
+- No AI forecasting and no automatic stock/PO action.
 
-## Phase 2 — Purchase Orders and receiving
+## Next approved work
 
-**Goal:** Turn replenishment from CSV advice into a tracked operational workflow.
-
-- PO headers/items/status workflow.
-- Draft/approve/order/ship/partial receive/receive/cancel.
-- Incoming quantities and ETA.
-- Partial receipts.
-- Explicit stock increment on receipt.
-- Receiving into a selected location.
-- Keep CSV export for interoperability.
-
-**Exit gate:** A PO can be created, partially received and fully received without corrupting stock.
-
-## Phase 3 — Barcode and multi-location workflows
-
-**Goal:** Make warehouse operations usable from a phone/browser.
-
-- Mobile-friendly scanner screen.
-- Camera barcode scan + manual fallback.
-- Product lookup.
-- PO receiving by barcode.
-- Stock adjustment by barcode.
-- Stock count workflow.
-- Location transfers.
-- Aggregate Woo stock synchronization.
-
-**Exit gate:** Scan/receive/adjust/count/transfer flows reconcile against the ledger.
-
-## Phase 4 — Analytics foundation and forecasting
-
-**Goal:** Build deterministic metrics once and reuse them everywhere.
-
-- 7/30/90/365-day demand metrics.
-- Weighted velocity.
-- Stock cover/days of stock.
-- Projected stockout date.
-- Demand variability.
-- Average realized selling price.
-- Forecast snapshots and confidence/data-quality states.
-- Scheduled incremental recalculation.
-- Forecast-vs-actual storage and accuracy metrics.
-
-**Exit gate:** Metrics are reproducible, explainable and do not require expensive live order scans.
-
-## Phase 5 — Inventory intelligence
-
-**Goal:** Turn metrics into product-level decisions.
-
+### Phase 7 — Selected inventory intelligence
+Implement only:
 - Revenue at Risk.
-- Estimated Lost Sales from OOS.
-- Inventory Health Score + history.
-- ABC/XYZ segmentation.
-- Dead/slow stock aging and tied-up capital.
+- Estimated Lost Sales from actual OOS periods.
+- Inventory Health Score.
+- Improved dead/slow-stock aging and tied-up capital.
 - GMROI.
 - Pareto analysis.
-- Bundle opportunity recommendations from co-purchase data.
-- Product 360 operational view combining stock, demand, suppliers, POs and intelligence.
+- Evidence-backed bundle recommendations.
 
-**Exit gate:** Every recommendation exposes evidence/inputs and handles insufficient data safely.
+**Explicit exclusion:** no ABC/XYZ segmentation.
 
-## Phase 6 — Operations cockpit
-
-**Goal:** Make Woo Hoo Manager useful every morning.
-
+### Phase 8 — Operations cockpit
 - Smart Alerts with dedupe/snooze/resolve.
 - What Changed? dashboard.
 - Today Action Center.
-- Prioritization by severity, urgency and estimated impact.
-- Deep links from actions to the relevant product/PO/stock workflow.
+- Prioritization and deep links only as needed by those approved features.
 
-**Exit gate:** The dashboard answers what changed and what needs action without requiring manual report hunting.
-
-## Phase 7 — Planning and scenarios
-
-**Goal:** Help the manager plan inventory cash before problems happen.
-
-- 90-day purchasing requirement forecast.
+### Phase 9 — 90-day planning
+- 90-day purchasing/cash forecast.
 - Supplier/week/month cash grouping.
-- Suggested order dates and quantities.
+- Suggested order dates/quantities using existing deterministic inputs.
 - Budget-pressure warnings.
-- What-if simulator for demand, lead time, safety stock, delay and budget cap.
-- Baseline-vs-scenario comparison.
+- What-if simulator for approved scenario inputs.
+- Never automatically place orders.
 
-**Exit gate:** Scenario changes never alter production settings or stock.
-
-## Phase 8 — Executive reporting
-
-**Goal:** Produce a concise management summary from deterministic data.
-
-- Weekly report snapshot.
+### Phase 10 — Weekly Executive Report
+- Deterministic weekly report.
 - Week-over-week comparisons.
-- Inventory and risk summary.
-- Purchasing/cash outlook.
-- Top actions and opportunities.
+- Inventory/risk/purchasing summaries drawn only from approved features.
 - Configurable email delivery.
 
-**Exit gate:** Report remains useful with AI completely disabled.
+### Phase 11 — Optional AI explanation layer
+- Only after deterministic evidence exists.
+- Explanation/summarization of approved metrics and report facts.
+- AI never invents quantities, costs, forecasts or orders.
+- No AI forecast engine.
 
-## Phase 9 — Optional AI layer
+### Phase 12 — Navigation consolidation
+Only after replacement parity is verified, consolidate the approved capabilities into the final information architecture requested by the user. Keep the existing WordPress/WooCommerce architecture; this is navigation/UX consolidation, not an application rewrite.
 
-**Goal:** Explain structured intelligence, not replace it.
+## Removed from active roadmap
 
-- Provider abstraction and settings.
-- No committed API keys.
-- Anomaly/risk explanation using structured metric payloads.
-- Optional weekly executive narrative.
-- Strict prompts that prohibit invented quantities/costs/orders.
+The following are not approved and must not be implemented:
+- ABC/XYZ segmentation.
+- Product 360 as a separate feature/module.
+- Seasonality-aware forecasting as a separate feature.
+- Forecast-accuracy dashboard/module as a separate feature.
+- Any other feature outside `docs/SCOPE-LOCK.md`.
 
-Later candidate: conversational analytics (“Why did revenue drop?”) after the evidence APIs are stable.
-
-## Phase 10 — UX consolidation
-
-Once feature parity is proven, consolidate navigation toward:
-
-`Dashboard / Inventory / Purchasing / Products / Analytics / Reports / Settings`
-
-Remove or merge legacy screens only after replacements are verified.
-
-## Explicit non-goals for this roadmap
-
-- No external SaaS backend rewrite.
-- No mandatory cloud database.
-- No separate React application.
-- No native iOS/Android warehouse app.
-- No autonomous purchasing without confirmation.
-- No LLM-generated stock forecasts replacing deterministic calculations.
-- No full accounting/ERP system.
-
-## Development strategy
-
-Each phase should be a separately reviewable branch/PR where practical. Keep migrations backward-compatible, commit frequently, and never mix a broad architecture rewrite into a feature phase unless the approved spec is updated first.
+## Engineering constraints
+- WooCommerce remains canonical for products/orders/aggregate sellable stock.
+- No SaaS/backend rewrite, React SPA, external DB or microservices.
+- No native mobile app.
+- No autonomous purchasing.
+- No storefront-heavy analytics.
+- Stock mutations require explicit user action and audit movement.
+- Existing plugin functionality remains unless an approved replacement reaches parity.

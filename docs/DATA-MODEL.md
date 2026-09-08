@@ -1,170 +1,99 @@
 # Woo Hoo Manager — Data Model
 
-This document defines the intended persistence model. Exact schema details may be refined during implementation, but semantic meanings must remain stable.
+**Scope authority:** `docs/SCOPE-LOCK.md`. This model exists only to support approved features and required infrastructure.
 
 ## Principles
-
 - WooCommerce remains canonical for product/order identity and aggregate sellable stock.
-- Product meta is acceptable for a small number of product-level settings.
-- Relational entities, ledgers and time series belong in custom tables.
-- Use `$wpdb->prefix` and `dbDelta()`/versioned migrations; never hard-code `wp_`.
-- All tables need appropriate indexes for product, date, status and foreign-key-like IDs even though WordPress does not require SQL foreign keys.
-- Monetary values store decimal values plus currency; do not use floating-point math for persisted money.
+- Relational entities, ledgers and time-series facts may use custom `$wpdb->prefix` tables.
+- Migrations use versioned `dbDelta()` and must be retry-safe.
+- Persisted money uses decimal-safe values plus currency context.
+- Do not add tables/fields for unapproved product features.
 
-## Product meta / settings
+## Product settings/meta
+Preserve existing low-stock threshold and units-per-box behavior. Additional settings are allowed only when required by an approved feature, e.g. safety-stock days for the approved 90-day plan/what-if simulator.
 
-Existing metadata such as low-stock threshold and units-per-box should be preserved/migrated, not duplicated unnecessarily.
-
-Potential additional product-level settings:
-
-- barcode/GTIN only if a dedicated barcode mapping table is not required for multiple codes;
-- safety stock days override;
-- preferred supplier relationship ID;
-- forecast/reorder exclusions;
-- product lifecycle state.
-
-## Proposed custom tables
-
-Names below omit the runtime WordPress prefix.
+## Custom tables
 
 ### `ssw_suppliers`
-
-Supplier master data: `id`, `name`, contact fields, address/notes, `currency`, `lead_time_days`, `minimum_order_value`, `active`, timestamps.
+Supplier identity/contact, default currency/lead time, notes, active state, timestamps.
 
 ### `ssw_supplier_products`
-
-Many-to-many supplier-product relation: `id`, `supplier_id`, `product_id`, `supplier_sku`, `unit_cost`, `currency`, `moq`, `units_per_box`, `lead_time_days`, `preferred`, notes, timestamps.
-
-Unique/index strategy must prevent duplicate accidental relationships while allowing deliberate multiple supplier SKUs when required.
+Supplier-product/variation relationship with supplier SKU, cost, currency, MOQ, units-per-box, lead time and preferred flag.
 
 ### `ssw_purchase_orders`
-
-PO header: `id`, human-readable `po_number`, `supplier_id`, `location_id`, `status`, `currency`, `ordered_at`, `expected_at`, `shipped_at`, `received_at`, notes, created/updated user and timestamps.
+PO header with number, supplier, location, status, currency, dates/ETA, notes and audit timestamps/users.
 
 ### `ssw_purchase_order_items`
+PO lines with product, supplier-product relation, ordered/received quantity and unit cost. Remaining quantity is derived.
 
-PO line: `id`, `purchase_order_id`, `product_id`, `supplier_product_id`, `ordered_qty`, `received_qty`, `unit_cost`, line metadata.
-
-`remaining_qty` should normally be derived as ordered minus received rather than becoming an independently editable source of truth.
-
-### `ssw_po_receipts`
-
-Receipt event/header: `id`, `purchase_order_id`, `location_id`, `received_at`, `user_id`, note.
-
-### `ssw_po_receipt_items`
-
-Receipt lines: receipt ID, PO item ID, product ID, quantity received and related stock movement ID/reference.
+### `ssw_po_receipts` / `ssw_po_receipt_items`
+Idempotent receiving events and lines linked to PO items and stock movements.
 
 ### `ssw_locations`
-
-Inventory locations: `id`, `name`, `code`, `active`, `sellable`, address/notes, sort order, timestamps.
-
-Migration creates `Main warehouse` and seeds it from WooCommerce stock.
+Inventory locations including Main warehouse, code, active/sellable state and metadata.
 
 ### `ssw_location_stock`
-
-Current per-location balance for fast reads: `location_id`, `product_id`, `quantity`, `updated_at`.
-
-The stock movement ledger is the audit truth for Woo Hoo Manager operations; this balance table is the efficient current-state projection.
+Current product/location balance for fast reads.
 
 ### `ssw_stock_movements`
-
-Immutable inventory ledger: `id`, `product_id`, `location_id`, `movement_type`, `quantity_before`, `delta`, `quantity_after`, `source_type`, `source_id`, `user_id`, `note`, `created_at`.
-
-Movement types include manual adjustment, PO receipt, count correction, transfer out, transfer in, migration/import and Woo synchronization where needed.
+Immutable audit ledger: product, location, before/delta/after, movement type, source, user, note, timestamp.
 
 ### `ssw_barcodes`
+Product/variation barcode mappings (GTIN/EAN/UPC etc.), uniquely indexed as appropriate.
 
-`id`, `product_id`, `barcode`, `barcode_type`, `primary`, timestamps. Barcode value should be uniquely indexed unless a documented exception is required.
+### `ssw_sales_daily`
+Retry-safe daily product/variation sales facts used by approved risk, health, dead-stock, planning and reporting features.
 
 ### `ssw_inventory_snapshots_daily`
-
-Daily per-product/location inventory state for historical value and GMROI: date, product, location, quantity, unit cost snapshot, retail price snapshot, health score snapshot where useful.
+Daily product/location quantity plus cost/retail context used by approved dead-stock, GMROI, health and reporting features.
 
 ### `ssw_product_metrics_daily`
+Precomputed deterministic facts used by approved features. Appropriate fields include:
+- units/velocity windows;
+- weighted velocity;
+- available quantity / stock cover;
+- projected stockout date;
+- average realized price;
+- demand variability only where needed internally by approved health/alerts;
+- health score/component facts;
+- last sale / days-since-sale / OOS duration facts;
+- contribution/cost facts needed by approved Pareto/GMROI;
+- confidence/data-quality state.
 
-Precomputed analytics per product/variation and date. Candidate fields:
-
-- units_7d/30d/90d/365d;
-- velocity_7d/30d/90d/365d;
-- weighted_velocity;
-- days_of_stock;
-- projected_stockout_date;
-- avg_realized_price;
-- demand_mean/stddev/CV;
-- ABC class;
-- XYZ class;
-- health score and component scores;
-- forecast horizon quantities;
-- forecast confidence/data-quality state;
-- revenue/gross-profit contribution;
-- last sale date;
-- OOS duration/flags.
-
-Do not over-denormalize every possible UI number. Store expensive/reused facts and derive cheap presentation values.
+**Do not store or calculate ABC/XYZ classes.**
 
 ### `ssw_forecasts`
-
-Forecast snapshots for accuracy measurement: `generated_for_date`, `product_id`, `horizon_date`, `forecast_qty`, `model_version`, `inputs_hash`, confidence metadata. Actuals are compared later against WooCommerce demand aggregation.
+Deterministic forecast snapshots required by approved Revenue at Risk, 90-day purchasing/cash planning, What-if and reporting. Forecasting remains transparent infrastructure, not an extra product module.
 
 ### `ssw_alerts`
-
-Persisted/deduplicated operational alerts: `id`, `type`, `severity`, `product_id`, optional supplier/PO/location IDs, dedupe key, state, `first_seen_at`, `last_seen_at`, `snoozed_until`, `resolved_at`, JSON context payload.
+Persisted/deduplicated Smart Alerts: type, severity, relevant entity IDs, dedupe key, state/timestamps, context payload.
 
 ### `ssw_reports`
+Weekly Executive Report deterministic snapshot/metadata. Optional AI narrative is supplementary.
 
-Generated weekly report metadata and deterministic report payload/snapshot so a historical report does not change when current data changes. AI narrative, if enabled, is supplementary.
-
-## WooCommerce aggregate stock synchronization
-
-Multi-location stock introduces two representations:
-
-1. Woo Hoo Manager per-location balances.
-2. WooCommerce aggregate sellable stock.
-
+## Aggregate stock synchronization
 For managed products:
 
-`woocommerce_stock = sum(quantity at active sellable locations)`
+`WooCommerce sellable stock = sum(active sellable location balances)`
 
-A transfer between sellable locations creates equal opposite movements and therefore must not change aggregate Woo stock.
-
-A PO receipt or adjustment changes a location balance and then synchronizes the aggregate through WooCommerce stock APIs.
-
-The implementation must guard against recursion when WooCommerce stock hooks fire because Woo Hoo Manager itself performed the update.
+Transfers between sellable locations use paired movements and do not change aggregate stock. PO receipts/adjustments update a location then synchronize aggregate through WooCommerce stock APIs with recursion guards.
 
 ## Reserved / available stock
+Reserved stock is derived from eligible WooCommerce order behavior where reliable, not an independently editable balance. UI must disclose when it cannot be reliably derived.
 
-Reserved stock is not a new editable balance. It is derived from eligible WooCommerce order states according to configurable rules compatible with WooCommerce stock-reduction behavior.
+## Background jobs
+Allowed jobs exist only to support approved capabilities:
+1. historical order aggregation;
+2. daily inventory snapshot;
+3. deterministic product metric/forecast calculation;
+4. bundle co-purchase aggregation;
+5. Smart Alert evaluation;
+6. weekly report generation.
 
-`available = on_hand - reserved`
-
-The UI must make clear when reserved quantity is unavailable/unreliable due to store configuration.
-
-## Analytics jobs
-
-Use versioned jobs/batches:
-
-1. historical order backfill;
-2. daily sales aggregation;
-3. daily inventory snapshot;
-4. product metric calculation;
-5. forecast generation;
-6. alert evaluation;
-7. weekly report generation.
-
-Jobs must be idempotent or safely retryable.
+Jobs must be bounded and retry-safe and must not run expensive work on normal storefront requests.
 
 ## Data-quality states
-
-Forecast-dependent metrics should expose one of at least:
-
-- `insufficient_data`;
-- `low_confidence`;
-- `normal`;
-- `high_confidence`.
-
-The UI should prefer “not enough data yet” over a misleading exact forecast.
+Use `insufficient_data`, `low_confidence`, `normal`, `high_confidence` (or compatible states) where approved forecast-dependent outputs need them. Prefer missing/insufficient-data messaging over false precision.
 
 ## Retention
-
-Do not purge stock movements or PO receipts automatically. Forecast/metric snapshots can eventually use configurable retention/aggregation, but the first implementation should preserve enough history for year-over-year seasonality and auditability.
+Do not automatically purge audit stock movements or PO receipts. Retain enough deterministic sales/inventory history to support the approved GMROI, dead/slow-stock, risk, planning and report windows. No retention requirement may be justified by an unapproved feature.
