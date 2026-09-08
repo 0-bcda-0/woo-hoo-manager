@@ -76,6 +76,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Intelligence_Admin();
 		new SSW_Bundle_Admin();
 		new SSW_Alert_Admin();
+		new SSW_Weekly_Report_Admin();
 		new SSW_Analytics_Jobs();
 		new SSW_Ajax();
 		new SSW_Import_Export();
@@ -116,6 +117,9 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-action-center.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-operations-dashboard.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-weekly-report.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-weekly-report-service.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-weekly-report-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
 	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }
@@ -139,6 +143,7 @@ final class Sheet_Stock_Sync_Woo {
 		if ( $licence_check ) { wp_unschedule_event( $licence_check, SSW_CRON_LICENSE ); }
 		wp_clear_scheduled_hook( SSW_CRON_LICENSE );
 		if ( class_exists( 'SSW_Analytics_Jobs' ) ) { SSW_Analytics_Jobs::clear_schedules(); }
+		if ( class_exists( 'SSW_Weekly_Report_Admin' ) ) { SSW_Weekly_Report_Admin::clear_schedule(); }
 		delete_option( 'ssw_report_schedule' );
 		delete_transient( SSW_TRANSIENT_ANALYTICS );
 	}
