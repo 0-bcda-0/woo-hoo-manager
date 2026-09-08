@@ -18,6 +18,7 @@ on:
       - phase-10-operations-cockpit
       - phase-11-90-day-planning
       - phase-12-what-if-simulator
+      - phase-13-weekly-executive-report
 
 jobs:
   foundation:
@@ -63,3 +64,5 @@ jobs:
         run: php tests/test-purchasing-planner.php
       - name: Run approved what-if simulator test
         run: php tests/test-what-if-simulator.php
+      - name: Run approved weekly executive report test
+        run: php tests/test-weekly-report.php
