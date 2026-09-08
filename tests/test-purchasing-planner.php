@@ -47,7 +47,7 @@ $future = SSW_Purchasing_Planner::plan_product( array(
 	'horizon_days' => 90,
 ) );
 ssw_assert_plan( '2026-10-23' === $future['suggested_order_date'], 'Suggested order date occurs when projected cover reaches lead time plus safety stock.' );
-ssw_assert_plan( 45.0 === $future['suggested_order_quantity'], 'Future reorder quantity restores the remaining 90-day need from order date.' );
+ssw_assert_plan( 90.0 === $future['suggested_order_quantity'], 'Future reorder quantity covers the 90-day planning horizon plus lead time and safety stock from the order date.' );
 
 $none = SSW_Purchasing_Planner::plan_product( array(
 	'as_of_date' => '2026-09-08',
