@@ -30,4 +30,22 @@ ssw_assert_barcode( 77 === $assignment['product_id'], 'Barcode assignment produc
 ssw_assert_barcode( '385001' === $assignment['barcode'], 'Assignment barcode is normalized.' );
 ssw_assert_barcode( 1 === $assignment['is_primary'], 'Primary flag is normalized.' );
 
+$admin_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-barcode-admin.php';
+ssw_assert_barcode( file_exists( $admin_file ), 'class-ssw-barcode-admin.php must exist.' );
+require_once $admin_file;
+
+$count = SSW_Barcode_Admin::normalize_count_request( array(
+	'product_id' => '77',
+	'location_id' => '5',
+	'counted_quantity' => '12,5',
+	'note' => ' Shelf count ',
+) );
+ssw_assert_barcode( 77 === $count['product_id'], 'Count request normalizes product ID.' );
+ssw_assert_barcode( 5 === $count['location_id'], 'Count request normalizes location ID.' );
+ssw_assert_barcode( 12.5 === $count['counted_quantity'], 'Count request accepts decimal comma.' );
+ssw_assert_barcode( 'Shelf count' === $count['note'], 'Count request sanitizes note.' );
+
+$lookup = SSW_Barcode_Admin::normalize_lookup_request( array( 'barcode' => ' 385 123 456 ' ) );
+ssw_assert_barcode( '385123456' === $lookup['barcode'], 'Manual/scanner lookup uses shared barcode normalization.' );
+
 fwrite( STDOUT, "PASS: barcode and count workflow\n" );
