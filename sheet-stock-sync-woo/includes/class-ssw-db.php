@@ -8,12 +8,9 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SSW_DB_SCHEMA_VERSION' ) ) {
-	define( 'SSW_DB_SCHEMA_VERSION', 2 );
+	define( 'SSW_DB_SCHEMA_VERSION', 3 );
 }
 
-/**
- * Owns plugin schema upgrades.
- */
 final class SSW_DB {
 
 	const VERSION_OPTION = 'ssw_db_schema_version';
@@ -40,6 +37,9 @@ final class SSW_DB {
 			case 2:
 				self::migration_2();
 				break;
+			case 3:
+				self::migration_3();
+				break;
 		}
 	}
 
@@ -52,29 +52,24 @@ final class SSW_DB {
 	private static function migration_1() {
 		global $wpdb;
 		self::ensure_dbdelta();
-
 		$table_name      = $wpdb->prefix . 'ssw_schema_meta';
 		$charset_collate = $wpdb->get_charset_collate();
-		$sql             = "CREATE TABLE {$table_name} (\n"
+		$sql = "CREATE TABLE {$table_name} (\n"
 			. "meta_key varchar(191) NOT NULL,\n"
 			. "meta_value longtext NULL,\n"
 			. "updated_at datetime NOT NULL,\n"
 			. "PRIMARY KEY  (meta_key)\n"
 			. ") {$charset_collate};";
-
 		dbDelta( $sql );
 	}
 
-	/**
-	 * Supplier master data and product/variation purchasing relationships.
-	 */
 	private static function migration_2() {
 		global $wpdb;
 		self::ensure_dbdelta();
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$suppliers = $wpdb->prefix . 'ssw_suppliers';
-		$sql       = "CREATE TABLE {$suppliers} (\n"
+		$sql = "CREATE TABLE {$suppliers} (\n"
 			. "id bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n"
 			. "name varchar(191) NOT NULL,\n"
 			. "contact_name varchar(191) NULL,\n"
@@ -94,7 +89,7 @@ final class SSW_DB {
 		dbDelta( $sql );
 
 		$relations = $wpdb->prefix . 'ssw_supplier_products';
-		$sql       = "CREATE TABLE {$relations} (\n"
+		$sql = "CREATE TABLE {$relations} (\n"
 			. "id bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n"
 			. "product_id bigint(20) unsigned NOT NULL,\n"
 			. "supplier_id bigint(20) unsigned NOT NULL,\n"
@@ -112,6 +107,62 @@ final class SSW_DB {
 			. "KEY product_id (product_id),\n"
 			. "KEY supplier_id (supplier_id),\n"
 			. "KEY preferred_product (product_id,is_preferred)\n"
+			. ") {$charset_collate};";
+		dbDelta( $sql );
+	}
+
+	private static function migration_3() {
+		global $wpdb;
+		self::ensure_dbdelta();
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$locations = $wpdb->prefix . 'ssw_locations';
+		$sql = "CREATE TABLE {$locations} (\n"
+			. "id bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n"
+			. "name varchar(191) NOT NULL,\n"
+			. "code varchar(100) NOT NULL,\n"
+			. "is_sellable tinyint(1) NOT NULL DEFAULT 1,\n"
+			. "active tinyint(1) NOT NULL DEFAULT 1,\n"
+			. "created_at datetime NOT NULL,\n"
+			. "updated_at datetime NOT NULL,\n"
+			. "PRIMARY KEY  (id),\n"
+			. "UNIQUE KEY code (code),\n"
+			. "KEY active_sellable (active,is_sellable)\n"
+			. ") {$charset_collate};";
+		dbDelta( $sql );
+
+		$stock = $wpdb->prefix . 'ssw_location_stock';
+		$sql = "CREATE TABLE {$stock} (\n"
+			. "id bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n"
+			. "product_id bigint(20) unsigned NOT NULL,\n"
+			. "location_id bigint(20) unsigned NOT NULL,\n"
+			. "quantity decimal(19,4) NOT NULL DEFAULT 0,\n"
+			. "updated_at datetime NOT NULL,\n"
+			. "PRIMARY KEY  (id),\n"
+			. "UNIQUE KEY product_location (product_id,location_id),\n"
+			. "KEY product_id (product_id),\n"
+			. "KEY location_id (location_id)\n"
+			. ") {$charset_collate};";
+		dbDelta( $sql );
+
+		$movements = $wpdb->prefix . 'ssw_stock_movements';
+		$sql = "CREATE TABLE {$movements} (\n"
+			. "id bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n"
+			. "product_id bigint(20) unsigned NOT NULL,\n"
+			. "location_id bigint(20) unsigned NOT NULL,\n"
+			. "quantity_before decimal(19,4) NOT NULL,\n"
+			. "delta decimal(19,4) NOT NULL,\n"
+			. "quantity_after decimal(19,4) NOT NULL,\n"
+			. "movement_type varchar(50) NOT NULL,\n"
+			. "source varchar(100) NOT NULL,\n"
+			. "source_ref varchar(191) NULL,\n"
+			. "user_id bigint(20) unsigned NOT NULL DEFAULT 0,\n"
+			. "note text NULL,\n"
+			. "created_at datetime NOT NULL,\n"
+			. "PRIMARY KEY  (id),\n"
+			. "KEY product_created (product_id,created_at),\n"
+			. "KEY location_created (location_id,created_at),\n"
+			. "KEY source_ref (source,source_ref)\n"
 			. ") {$charset_collate};";
 		dbDelta( $sql );
 	}

@@ -7,6 +7,7 @@ on:
       - main
       - phase-0-db-migrations
       - phase-1-suppliers
+      - phase-2-location-ledger
 
 jobs:
   foundation:
@@ -29,3 +30,6 @@ jobs:
 
       - name: Run supplier domain test
         run: php tests/test-suppliers.php
+
+      - name: Run location ledger test
+        run: php tests/test-location-ledger.php
