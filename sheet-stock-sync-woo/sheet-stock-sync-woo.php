@@ -71,6 +71,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Location_Admin();
 		new SSW_Purchase_Order_Admin();
 		new SSW_Purchasing_Plan_Admin();
+		new SSW_What_If_Admin();
 		new SSW_Barcode_Admin();
 		new SSW_Intelligence_Admin();
 		new SSW_Bundle_Admin();
@@ -98,6 +99,8 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-order-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchasing-planner.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchasing-plan-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-what-if.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-what-if-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcodes.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcode-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-sales-aggregator.php';
