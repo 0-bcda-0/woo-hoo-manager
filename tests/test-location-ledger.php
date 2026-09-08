@@ -29,8 +29,10 @@ function ssw_assert_location( $condition, $message ) {
 	}
 }
 
-$class_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-locations.php';
-$ledger_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-stock-ledger.php';
+$base = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/';
+$class_file = $base . 'class-ssw-locations.php';
+$ledger_file = $base . 'class-ssw-stock-ledger.php';
+$admin_file = $base . 'class-ssw-location-admin.php';
 ssw_assert_location( file_exists( $class_file ), 'class-ssw-locations.php must exist.' );
 ssw_assert_location( file_exists( $ledger_file ), 'class-ssw-stock-ledger.php must exist.' );
 require_once $class_file;
@@ -73,5 +75,18 @@ $transfer = SSW_Stock_Ledger::paired_transfer_movements( 42, 2, 5, 6, 'test' );
 ssw_assert_location( -6.0 === $transfer[0]['delta'], 'Transfer out is negative.' );
 ssw_assert_location( 6.0 === $transfer[1]['delta'], 'Transfer in is positive.' );
 ssw_assert_location( 0.0 === $transfer[0]['delta'] + $transfer[1]['delta'], 'Transfer does not change aggregate stock.' );
+
+ssw_assert_location( file_exists( $admin_file ), 'class-ssw-location-admin.php must exist.' );
+require_once $admin_file;
+$adjustment = SSW_Location_Admin::normalize_adjustment_request( array(
+	'product_id' => '42',
+	'location_id' => '3',
+	'delta' => '-2,5',
+	'note' => ' Cycle count ',
+) );
+ssw_assert_location( 42 === $adjustment['product_id'], 'Admin adjustment product ID is normalized.' );
+ssw_assert_location( 3 === $adjustment['location_id'], 'Admin adjustment location ID is normalized.' );
+ssw_assert_location( -2.5 === $adjustment['delta'], 'Admin adjustment accepts decimal comma.' );
+ssw_assert_location( 'Cycle count' === $adjustment['note'], 'Admin adjustment note is sanitized.' );
 
 fwrite( STDOUT, "PASS: location ledger behavior\n" );
