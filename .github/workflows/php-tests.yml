@@ -63,3 +63,5 @@ jobs:
         run: php tests/test-purchasing-planner.php
       - name: Run approved what-if simulator test
         run: php tests/test-what-if-simulator.php
+      - name: Run approved weekly executive report test
+        run: php tests/test-weekly-report.php
