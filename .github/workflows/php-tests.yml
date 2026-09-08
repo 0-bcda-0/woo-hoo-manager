@@ -43,3 +43,5 @@ jobs:
         run: php tests/test-analytics-jobs.php
       - name: Run demand forecasting test
         run: php tests/test-demand-forecasting.php
+      - name: Run metrics engine test
+        run: php tests/test-metrics-engine.php
