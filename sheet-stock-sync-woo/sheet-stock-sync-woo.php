@@ -13,7 +13,6 @@
  * License URI:        https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       sheet-stock-sync-woo
  * Domain Path:       /languages
- *
  * @package SheetStockSyncWoo
  */
 
@@ -39,13 +38,10 @@ require_once SSW_PLUGIN_DIR . 'includes/class-ssw-settings.php';
 require_once SSW_PLUGIN_DIR . 'includes/class-ssw-db.php';
 
 final class Sheet_Stock_Sync_Woo {
-
 	private static $instance = null;
 
 	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		if ( null === self::$instance ) { self::$instance = new self(); }
 		return self::$instance;
 	}
 
@@ -58,19 +54,12 @@ final class Sheet_Stock_Sync_Woo {
 		register_deactivation_hook( SSW_PLUGIN_FILE, array( $this, 'on_deactivate' ) );
 	}
 
-	public function load_textdomain() {
-		load_plugin_textdomain( 'sheet-stock-sync-woo', false, dirname( SSW_PLUGIN_BASENAME ) . '/languages' );
-	}
+	public function load_textdomain() { load_plugin_textdomain( 'sheet-stock-sync-woo', false, dirname( SSW_PLUGIN_BASENAME ) . '/languages' ); }
 
 	public function filter_locale( $locale, $domain ) {
-		if ( 'sheet-stock-sync-woo' !== $domain ) {
-			return $locale;
-		}
+		if ( 'sheet-stock-sync-woo' !== $domain ) { return $locale; }
 		$chosen = SSW_Settings::get( 'admin_language', '' );
-		if ( '' === $chosen || ! array_key_exists( $chosen, SSW_Settings::languages() ) ) {
-			return $locale;
-		}
-		return $chosen;
+		return ( '' !== $chosen && array_key_exists( $chosen, SSW_Settings::languages() ) ) ? $chosen : $locale;
 	}
 
 	public function declare_compatibility() {
@@ -84,7 +73,6 @@ final class Sheet_Stock_Sync_Woo {
 			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
 			return;
 		}
-
 		SSW_DB::maybe_upgrade();
 		$this->includes();
 		SSW_Locations::ensure_main_warehouse();
@@ -93,6 +81,7 @@ final class Sheet_Stock_Sync_Woo {
 		new SSW_Admin();
 		new SSW_Supplier_Admin();
 		new SSW_Location_Admin();
+		new SSW_Purchase_Order_Admin();
 		new SSW_Ajax();
 		new SSW_Import_Export();
 		new SSW_Low_Stock();
@@ -112,51 +101,34 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-ledger.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-location-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-orders.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-order-admin.php';
 	}
 
-	private function is_woocommerce_active() {
-		return class_exists( 'WooCommerce' );
-	}
+	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }
 
 	public function woocommerce_missing_notice() {
-		?>
-		<div class="notice notice-error"><p><?php esc_html_e( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ); ?></p></div>
-		<?php
+		?><div class="notice notice-error"><p><?php esc_html_e( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active.', 'sheet-stock-sync-woo' ); ?></p></div><?php
 	}
 
 	public function on_activate() {
 		if ( ! $this->is_woocommerce_active() ) {
 			deactivate_plugins( SSW_PLUGIN_BASENAME );
-			wp_die(
-				esc_html__( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active. The plugin has been deactivated.', 'sheet-stock-sync-woo' ),
-				esc_html__( 'Plugin activation error', 'sheet-stock-sync-woo' ),
-				array( 'back_link' => true )
-			);
+			wp_die( esc_html__( 'Stock Manager for WooCommerce requires WooCommerce to be installed and active. The plugin has been deactivated.', 'sheet-stock-sync-woo' ), esc_html__( 'Plugin activation error', 'sheet-stock-sync-woo' ), array( 'back_link' => true ) );
 		}
-
 		SSW_DB::maybe_upgrade();
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
 		SSW_Locations::ensure_main_warehouse();
-
-		if ( false === get_option( SSW_OPTION_SETTINGS ) ) {
-			add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() );
-		}
-		if ( ! get_option( SSW_OPTION_INSTALLED_AT ) ) {
-			add_option( SSW_OPTION_INSTALLED_AT, time(), '', false );
-		}
+		if ( false === get_option( SSW_OPTION_SETTINGS ) ) { add_option( SSW_OPTION_SETTINGS, SSW_Settings::defaults() ); }
+		if ( ! get_option( SSW_OPTION_INSTALLED_AT ) ) { add_option( SSW_OPTION_INSTALLED_AT, time(), '', false ); }
 	}
 
 	public function on_deactivate() {
 		$timestamp = wp_next_scheduled( SSW_CRON_LOW_STOCK );
-		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, SSW_CRON_LOW_STOCK );
-		}
+		if ( $timestamp ) { wp_unschedule_event( $timestamp, SSW_CRON_LOW_STOCK ); }
 		wp_clear_scheduled_hook( SSW_CRON_LOW_STOCK );
-
 		$licence_check = wp_next_scheduled( SSW_CRON_LICENSE );
-		if ( $licence_check ) {
-			wp_unschedule_event( $licence_check, SSW_CRON_LICENSE );
-		}
+		if ( $licence_check ) { wp_unschedule_event( $licence_check, SSW_CRON_LICENSE ); }
 		wp_clear_scheduled_hook( SSW_CRON_LICENSE );
 		delete_option( 'ssw_report_schedule' );
 		delete_transient( SSW_TRANSIENT_ANALYTICS );
