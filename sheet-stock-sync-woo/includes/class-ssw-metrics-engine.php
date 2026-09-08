@@ -25,6 +25,10 @@ final class SSW_Metrics_Engine {
 		return $wpdb->prefix . 'ssw_sales_daily';
 	}
 
+	private static function json_encode_stable( $value ) {
+		return function_exists( 'wp_json_encode' ) ? wp_json_encode( $value ) : json_encode( $value );
+	}
+
 	public static function calculate_windows( $daily_rows, $as_of_date, $history_days ) {
 		$history_days = max( 0, (int) $history_days );
 		$windows = array( 7, 30, 90, 365 );
@@ -128,7 +132,7 @@ final class SSW_Metrics_Engine {
 				'horizon_date' => SSW_Demand_Forecast::projected_stockout_date( $metric['metric_date'], $horizon ),
 				'forecast_qty' => SSW_Demand_Forecast::forecast_quantity( $metric['weighted_velocity'], $horizon ),
 				'model_version' => self::MODEL_VERSION,
-				'inputs_hash' => hash( 'sha256', wp_json_encode( $payload ) ),
+				'inputs_hash' => hash( 'sha256', self::json_encode_stable( $payload ) ),
 				'confidence_state' => $metric['confidence_state'],
 			);
 		}
@@ -156,7 +160,8 @@ final class SSW_Metrics_Engine {
 		$last = $wpdb->get_var( $wpdb->prepare( "SELECT MAX(fact_date) FROM {$sales_table} WHERE product_id = %d AND fact_date <= %s AND units > 0", $product_id, $as_of_date ) );
 		$history_days = 0;
 		if ( $first ) {
-			$history_days = (int) floor( ( strtotime( $as_of_date ) - strtotime( $first ) ) / DAY_IN_SECONDS ) + 1;
+			$day_seconds = defined( 'DAY_IN_SECONDS' ) ? DAY_IN_SECONDS : 86400;
+			$history_days = (int) floor( ( strtotime( $as_of_date ) - strtotime( $first ) ) / $day_seconds ) + 1;
 		}
 		$balances = SSW_Locations::product_balances( $product_id );
 		$available = SSW_Locations::aggregate_sellable( $balances );
@@ -181,7 +186,7 @@ final class SSW_Metrics_Engine {
 		$columns = array( 'metric_date', 'product_id' );
 		$values = array( $metric['metric_date'], (int) $product_id );
 		$placeholders = array( '%s', '%d' );
-		foreach ( $fields as $field ) { $columns[] = $field; $values[] = isset( $metric[ $field ] ) ? $metric[ $field ] : null; $placeholders[] = '%s'; }
+		foreach ( $fields as $field ) { $columns[] = $field; $values[] = array_key_exists( $field, $metric ) ? $metric[ $field ] : null; $placeholders[] = '%s'; }
 		$columns[] = 'created_at'; $values[] = $now; $placeholders[] = '%s';
 		$columns[] = 'updated_at'; $values[] = $now; $placeholders[] = '%s';
 		$updates = array();
