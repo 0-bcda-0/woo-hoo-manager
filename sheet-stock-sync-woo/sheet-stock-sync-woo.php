@@ -66,13 +66,11 @@ final class Sheet_Stock_Sync_Woo {
 		SSW_Locations::ensure_main_warehouse();
 		new SSW_License();
 		new SSW_Admin();
-		new SSW_Operations_Dashboard();
 		new SSW_Supplier_Admin();
-		new SSW_Location_Admin();
 		new SSW_Purchase_Order_Admin();
 		new SSW_Purchasing_Plan_Admin();
 		new SSW_What_If_Admin();
-		new SSW_Barcode_Admin();
+		new SSW_Stock_Operations_Admin();
 		new SSW_Intelligence_Admin();
 		new SSW_Bundle_Admin();
 		new SSW_Alert_Admin();
@@ -94,15 +92,13 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-supplier-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-locations.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-ledger.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-location-admin.php';
+		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-stock-operations-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-orders.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchase-order-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchasing-planner.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-purchasing-plan-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-what-if.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-what-if-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcodes.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-barcode-admin.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-sales-aggregator.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-demand-forecast.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-metrics-engine.php';
@@ -114,8 +110,6 @@ final class Sheet_Stock_Sync_Woo {
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alerts.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-evaluator.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-alert-admin.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-action-center.php';
-		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-operations-dashboard.php';
 		require_once SSW_PLUGIN_DIR . 'includes/class-ssw-analytics-jobs.php';
 	}
 	private function is_woocommerce_active() { return class_exists( 'WooCommerce' ); }

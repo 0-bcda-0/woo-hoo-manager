@@ -5,17 +5,12 @@ on:
   push:
     branches:
       - main
-      - phase-0-db-migrations
-      - phase-1-suppliers
-      - phase-2-location-ledger
-      - phase-3-purchase-orders
-      - phase-4-barcode-workflows
+      - scope-cleanup-original-list
       - phase-5-analytics-aggregation
       - phase-6-demand-forecasting
       - phase-7-inventory-intelligence
       - phase-8-bundle-recommendations
       - phase-9-smart-alerts
-      - phase-10-operations-cockpit
       - phase-11-90-day-planning
       - phase-12-what-if-simulator
 
@@ -35,14 +30,14 @@ jobs:
           coverage: none
       - name: Run database foundation test
         run: php tests/test-db-foundation.php
-      - name: Run supplier domain test
+      - name: Run supplier input foundation test
         run: php tests/test-suppliers.php
-      - name: Run location ledger test
+      - name: Run stock ledger foundation test
         run: php tests/test-location-ledger.php
-      - name: Run purchase order workflow test
+      - name: Run incoming purchase foundation test
         run: php tests/test-purchase-orders.php
-      - name: Run barcode workflow test
-        run: php tests/test-barcodes.php
+      - name: Run approved stock operations test
+        run: php tests/test-stock-operations.php
       - name: Run analytics aggregation test
         run: php tests/test-analytics-aggregation.php
       - name: Run analytics job policy test
@@ -57,8 +52,6 @@ jobs:
         run: php tests/test-bundle-recommendations.php
       - name: Run approved smart alert test
         run: php tests/test-smart-alerts.php
-      - name: Run approved operations cockpit test
-        run: php tests/test-action-center.php
       - name: Run approved 90-day purchasing planner test
         run: php tests/test-purchasing-planner.php
       - name: Run approved what-if simulator test

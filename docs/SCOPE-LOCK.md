@@ -7,83 +7,88 @@ This file is the highest-priority product-scope document for the project.
 
 ## User-approved original feature IDs
 
-Only these original brainstorming items were selected by the user:
+Only these original brainstorming items are approved:
 
 `2, 3, 6, 7, 8, 9, 10, 12, 17, 18, 21, 23, 24, 27, 34, 35, 36, 37, 39`
 
-Additionally approved: **evidence-based bundle recommendations** (recommend which bundles to make; do not auto-create bundle products).
+Additionally approved: **evidence-based bundle recommendations** that suggest which bundles to make from real co-purchase data. These recommendations are separate from original #21 Bundles/Kits.
 
-Confirmed original-number corrections from the user:
+The numeric IDs refer only to the original brainstorming list supplied by the user. Never remap them using later roadmap/task numbering.
 
-- **#9 = Estimated Lost Sales caused by Out-of-Stock. It is NOT ABC/XYZ.**
-- **#36 = Cash Flow / Purchasing Forecast for the next 90 days.**
-- **#37 = What-if simulator.**
-- **AI is NOT approved.**
-- **Weekly Executive Report is NOT approved.**
+## Canonical approved feature names
 
-The numeric IDs above refer only to the assistant's original brainstorming list. Do not renumber or reinterpret them using later specs, roadmap phases or implementation-task numbers.
+- **#2 Inventory Forecasting Engine**
+- **#3 Days of Stock / Stock Cover**
+- **#6 Smart Replenishment**
+- **#7 Stockout Prediction**
+- **#8 Revenue at Risk**
+- **#9 Estimated Lost Sales caused by Out-of-Stock**
+- **#10 Inventory Health Score**
+- **#12 Expanded Slow / Dead Stock intelligence**
+- **#17 Stock Adjustments**
+- **#18 Stock Count / Inventura**
+- **#21 Bundles / Kits** with component availability
+- **Bundle Recommendations** from real co-purchase evidence
+- **#23 Smart Alerts**
+- **#24 Anomaly Detection**
+- **#27 Product 360°**
+- **#34 Seasonality-aware Forecasting**
+- **#35 Forecast vs Actual / Forecast Accuracy**
+- **#36 Cash Flow / Purchasing Forecast**
+- **#37 What-if Simulator**
+- **#39 Weekly Executive Report**
 
-## Approved feature whitelist
+## Supporting infrastructure allowed when required
 
-The implementation may expose only the following selected/confirmed capabilities:
+The following are not standalone approved product features, but may remain as supporting infrastructure only where they are necessary for the approved features above:
 
-- Supplier management and supplier-product purchasing data.
-- Persistent Purchase Orders and receiving, including partial receiving.
-- Revenue at Risk / stockout financial risk.
-- Estimated Lost Sales caused by actual OOS periods (#9).
-- Inventory Health Score.
-- Improved dead/slow-stock intelligence and aging.
-- GMROI where cost/history supports it.
-- Evidence-based bundle recommendations from real co-purchase data.
-- Barcode/mobile browser inventory workflows.
-- Multi-location / multi-warehouse inventory foundation and transfers.
-- Smart Alerts.
-- What Changed? dashboard.
-- Today Action Center.
-- Pareto analysis.
-- Cash Flow / Purchasing Forecast for the next 90 days (#36), including monthly projected purchasing spend and projected revenue/cash planning where deterministic inputs support it.
-- What-if simulator (#37), including temporary demand, lead-time and reorder-timing scenarios and resulting stockouts, Revenue at Risk and required purchasing cash.
-- Final information-architecture/navigation consolidation (#39), while preserving the existing WordPress/WooCommerce architecture for now.
+- supplier cost, supplier SKU, MOQ, pack size, lead time and supplier contact data used by #6/#7/#36;
+- persistent incoming-purchase data and receiving used to calculate incoming stock for #6/#7/#36;
+- immutable stock movement ledger used by #17/#18 and anomaly detection #24;
+- one internal default stock location if required by the movement ledger;
+- historical WooCommerce sales facts and daily inventory snapshots;
+- deterministic demand/velocity calculations, forecast snapshots and data-quality/confidence flags;
+- database migrations, indexes, bounded background jobs and caches.
 
-## Technical foundations allowed but NOT standalone features
+Supporting infrastructure must not be expanded into an unrelated user-facing module unless the user explicitly approves that feature.
 
-The following may exist only because an approved feature requires them. They must not become extra user-facing modules unless separately approved:
+## Explicitly out of scope
 
-- historical sales aggregation;
-- daily inventory snapshots;
-- deterministic velocity/demand calculations;
-- stock-cover and projected-stockout calculations;
-- forecast snapshots and confidence/data-quality flags;
-- database migrations, indexes, background jobs, caching and audit ledger;
-- supplier cost, lead-time, MOQ and pack-size inputs needed by approved purchasing/risk features.
+These are NOT selected and must not be exposed as product features:
 
-## Explicitly OUT OF SCOPE / remove from plans
+- #4 Supplier Management as a broad standalone management module beyond inputs required by approved features;
+- #5 Purchase Order system as a broad standalone ERP-style feature beyond incoming/receiving data required by approved features;
+- #11 ABC / XYZ;
+- #13 Gross Margin & Profit Analytics as its own dashboard;
+- #14 GMROI;
+- #15 Inventory Turnover as its own feature;
+- #16 Stock History as a standalone feature (movement history may exist as support for #17/#18/#24);
+- #19 Barcode Scanner;
+- #20 Multi-Warehouse;
+- #22 Returns + Damaged Stock as a separate inventory-state system;
+- #25 What Changed dashboard;
+- #26 Today / Action Center;
+- #28 Category / Brand Intelligence;
+- #29 Pareto analysis;
+- #30 Supplier Performance;
+- #31 Landed Cost;
+- #32 Price Intelligence;
+- #33 Promotion Impact;
+- #38 AI;
+- #40 Integrations;
+- React/SaaS/backend/external-DB/microservice/native-mobile rewrites;
+- autonomous purchasing or automatic PO placement.
 
-These were introduced by later assistant interpretation and are not approved features:
+## Scope enforcement
 
-- **ABC/XYZ segmentation.**
-- **Product 360** as a separate new feature/module.
-- **Seasonality-aware forecasting** as a separate roadmap feature.
-- **Forecast-accuracy dashboard/module** as a separate feature.
-- **Any AI feature or AI explanation layer.**
-- **Weekly Executive Report.**
-- Any new SaaS/backend architecture, React SPA, external database or microservice rewrite.
-- Any native iOS/Android app.
-- Autonomous purchasing or automatic PO placement.
-- Any other feature not present in the approved whitelist above.
+Before every branch/task/PR:
 
-If an unapproved idea would be useful, document it nowhere in the active roadmap and do not implement it. Ask the user first.
+1. Name the original approved feature number/name it implements.
+2. If it is infrastructure, name the approved feature(s) that require it.
+3. Check that no unrelated user-facing behavior is introduced.
+4. Do not merge extra features.
 
-## Scope enforcement rule
-
-Before every new branch/task/PR:
-
-1. Name the approved whitelist item it implements.
-2. If it is only infrastructure, name the approved feature that requires it.
-3. Search the change for unrelated user-facing behavior.
-4. Do not merge unrelated features.
-
-When documentation conflicts, priority is:
+Document priority:
 
 1. `docs/SCOPE-LOCK.md`
 2. direct user instruction

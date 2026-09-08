@@ -1,103 +1,67 @@
 # Woo Hoo Manager — Approved Roadmap
 
-> `docs/SCOPE-LOCK.md` is the canonical scope authority. No feature may be added to this roadmap unless the user explicitly approves it.
+> `docs/SCOPE-LOCK.md` is canonical. Original feature numbering from the user's source list is authoritative.
 
-The existing WordPress/PHP/WooCommerce architecture stays in place. This roadmap is dependency-aware, but technical dependencies are not separate product features.
+The existing WordPress/PHP/WooCommerce architecture stays in place.
 
-## Completed foundation
+## Completed or largely implemented
 
-### Phase 0 — Preserve, tests and migrations
-- Preserve existing plugin behavior.
-- PHP 7.4/8.1/8.3 test/syntax gates.
-- Versioned retry-safe DB migrations.
-- Installable WordPress ZIP build.
+- **#2 Inventory Forecasting Engine** — deterministic demand/forecast foundation exists.
+- **#3 Days of Stock / Stock Cover** — implemented from weighted velocity and current stock.
+- **#6 Smart Replenishment** — deterministic suggested order quantities use stock, incoming, lead time, safety stock and pack/MOQ inputs.
+- **#7 Stockout Prediction** — projected stockout date/coverage foundation exists.
+- **#8 Revenue at Risk** — implemented.
+- **#9 Estimated Lost Sales from OOS** — implemented and explicitly labeled estimated.
+- **#10 Inventory Health Score** — implemented from approved inventory components.
+- **#12 Slow / Dead Stock** — aging/status foundation implemented.
+- **#17 Stock Adjustments** — focused Stock Operations workflow.
+- **#18 Stock Count / Inventura** — focused Stock Operations count workflow.
+- **Bundle Recommendations** — evidence-based co-purchase recommendations implemented.
+- **#23 Smart Alerts** — persisted/deduped alert lifecycle implemented.
+- **#36 Cash Flow / Purchasing Forecast** — deterministic 90-day purchasing/cash planning implemented.
+- **#37 What-if Simulator** — non-persistent scenario engine implemented.
 
-### Phase 1 — Suppliers
-- Supplier CRUD.
-- Product-supplier relationships.
-- Cost, currency, MOQ, pack size, lead time and preferred supplier.
+## Supporting infrastructure only
 
-### Phase 2 — Multi-location stock foundation
-- Main warehouse migration.
-- Location balances.
-- Immutable stock movement ledger.
-- Manual adjustments and Woo aggregate reconciliation.
+Supplier/cost/lead-time/MOQ inputs, incoming-purchase/receiving data, one internal Main stock location, immutable movement ledger, historical sales facts, daily snapshots and forecast caches may remain only because approved features depend on them. They must not expand into unrelated product modules.
 
-### Phase 3 — Purchase Orders
-- Persistent PO headers/items/statuses.
-- Partial/full receiving.
-- Idempotent receipt handling.
-- Receiving into selected warehouse/location.
+## Remaining approved work
 
-### Phase 4 — Barcode workflows
-- Barcode mapping/lookup.
-- Mobile-friendly browser workflow with manual fallback.
-- Stock adjustment/count/transfer operations backed by the stock ledger.
+### #21 Bundles / Kits
+- Define bundle components and required quantities.
+- Calculate sellable bundle availability as the limiting component quantity.
+- When bundle stock changes through Woo orders, reconcile component availability safely.
+- Keep bundle recommendations as a separate evidence layer.
 
-### Phase 5 — Required analytics foundation
-Infrastructure only for approved risk, health, dead-stock, GMROI and cash-planning features.
-- Historical sales aggregation.
-- Daily inventory snapshots.
-- Bounded/resumable background jobs.
+### #24 Anomaly Detection
+- Detect abnormal sales velocity spikes/drops.
+- Detect large stock movements without corresponding expected source context.
+- Detect unusual price changes where Woo history supports it.
+- Detect sudden OOS spikes.
+- Surface anomalies through Smart Alerts; do not create a generic AI system.
 
-### Phase 6 — Required deterministic forecasting foundation
-Infrastructure only.
-- Demand velocity windows and weighted velocity.
-- Stock cover and projected stockout.
-- Forecast snapshots.
-- Confidence/data-quality states.
-- No automatic stock/PO action.
+### #27 Product 360°
+One product page combining approved evidence only: price, stock, incoming, velocity, stock cover, projected stockout, revenue/units, supplier purchasing inputs, risk/lost-sales/health/dead-stock state and deterministic recommendation.
 
-## Approved feature implementation
+### #34 Seasonality-aware Forecasting
+- Use longer historical periods and month/season factors when enough history exists.
+- Prevent Q4/BFCM-like spikes from contaminating ordinary baseline demand.
+- Keep a deterministic fallback when history is insufficient.
+- Expose confidence/data sufficiency.
 
-### Phase 7 — Selected inventory intelligence
-- Revenue at Risk.
-- Estimated Lost Sales from actual OOS periods.
-- Inventory Health Score.
-- Improved dead/slow-stock aging and tied-up capital.
-- GMROI.
-- Pareto analysis.
-- Evidence-backed bundle recommendations.
+### #35 Forecast vs Actual
+- Persist comparable forecast snapshots.
+- Compare predicted vs realized units by product and aggregate period.
+- Show transparent error/accuracy metrics and low-data states.
 
-### Phase 8 — Operations cockpit
-- Smart Alerts with dedupe/snooze/resolve.
-- What Changed? dashboard.
-- Today Action Center.
-- Prioritization/deep links only for approved workflows.
+### #39 Weekly Executive Report
+- Deterministic weekly report and historical snapshot.
+- Revenue/orders/units plus approved inventory-risk, alerts, dead stock, cash forecast and opportunities.
+- Email delivery and in-plugin view.
+- No AI narrative.
 
-### Phase 9 — #36 Cash Flow / Purchasing Forecast
-- 90-day purchasing/cash forecast.
-- Monthly projected inventory spend (e.g. September/October/November).
-- Supplier/week/month cash grouping.
-- Suggested order dates/quantities using current stock, incoming POs, supplier lead time, MOQ/case size and deterministic demand.
-- Projected revenue where supported by deterministic demand/price inputs.
-- Budget-pressure warnings.
-- Never automatically place orders.
+## Final UX consolidation
+After the approved feature set reaches parity, clean up the WordPress admin navigation so only approved product capabilities plus necessary supporting-data screens remain visible. This is UX/navigation consolidation, not an architecture rewrite.
 
-### Phase 10 — #37 What-if simulator
-- Temporary scenario inputs only; nothing persists to production stock/settings.
-- Sales/demand increase or decrease.
-- Supplier lead-time change.
-- Reorder-delay/date scenarios.
-- Compare stockouts, Revenue at Risk and required purchasing cash.
-
-### Phase 11 — #39 Navigation consolidation
-Only after approved replacement parity is verified, consolidate approved capabilities into the final information architecture requested by the user. Preserve the existing WordPress/WooCommerce architecture; this is navigation/UX consolidation, not an application rewrite.
-
-## Explicitly removed / not approved
-- ABC/XYZ segmentation.
-- Product 360 as a separate feature/module.
-- Seasonality-aware forecasting as a separate feature.
-- Forecast-accuracy dashboard/module as a separate feature.
-- Any AI feature or AI explanation layer.
-- Weekly Executive Report.
-- Any other feature outside `docs/SCOPE-LOCK.md`.
-
-## Engineering constraints
-- WooCommerce remains canonical for products/orders/aggregate sellable stock.
-- No SaaS/backend rewrite, React SPA, external DB or microservices.
-- No native mobile app.
-- No autonomous purchasing.
-- No storefront-heavy analytics.
-- Stock mutations require explicit user action and audit movement.
-- Existing plugin functionality remains unless an approved replacement reaches parity.
+## Explicitly not approved
+ABC/XYZ, GMROI, Barcode Scanner, Multi-Warehouse, What Changed, Today/Action Center, Pareto, Category/Brand Intelligence, Supplier Performance, Landed Cost, Price Intelligence, Promotion Impact, AI and external-channel integrations are out of scope unless the user later explicitly approves them.
