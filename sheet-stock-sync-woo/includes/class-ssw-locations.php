@@ -21,6 +21,20 @@ final class SSW_Locations {
 		return $wpdb->prefix . 'ssw_location_stock';
 	}
 
+	public static function normalize_location( $data ) {
+		$name = sanitize_text_field( isset( $data['name'] ) ? $data['name'] : '' );
+		$raw_code = sanitize_text_field( isset( $data['code'] ) ? $data['code'] : $name );
+		$raw_code = strtolower( trim( $raw_code ) );
+		$raw_code = preg_replace( '/[^a-z0-9]+/', '-', $raw_code );
+		$code = trim( $raw_code, '-' );
+		return array(
+			'name'        => trim( $name ),
+			'code'        => $code,
+			'is_sellable' => empty( $data['is_sellable'] ) ? 0 : 1,
+			'active'      => empty( $data['active'] ) ? 0 : 1,
+		);
+	}
+
 	public static function aggregate_sellable( $balances ) {
 		$total = 0.0;
 		foreach ( $balances as $balance ) {
@@ -60,6 +74,36 @@ final class SSW_Locations {
 		}
 		$sql .= ' ORDER BY name ASC';
 		return $wpdb->get_results( $sql, ARRAY_A );
+	}
+
+	public static function get( $location_id ) {
+		global $wpdb;
+		$table = self::locations_table();
+		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", absint( $location_id ) ), ARRAY_A );
+	}
+
+	public static function save( $data, $location_id = 0 ) {
+		global $wpdb;
+		$table = self::locations_table();
+		$row = self::normalize_location( $data );
+		if ( '' === $row['name'] || '' === $row['code'] ) {
+			return new WP_Error( 'ssw_location_required', __( 'Location name and code are required.', 'sheet-stock-sync-woo' ) );
+		}
+		$now = current_time( 'mysql' );
+		$row['updated_at'] = $now;
+		$location_id = absint( $location_id );
+		if ( $location_id ) {
+			$current = self::get( $location_id );
+			if ( $current && self::MAIN_CODE === $current['code'] ) {
+				$row['code'] = self::MAIN_CODE;
+				$row['active'] = 1;
+			}
+			$result = $wpdb->update( $table, $row, array( 'id' => $location_id ) );
+			return false === $result ? new WP_Error( 'ssw_location_update_failed', __( 'Could not update location.', 'sheet-stock-sync-woo' ) ) : $location_id;
+		}
+		$row['created_at'] = $now;
+		$result = $wpdb->insert( $table, $row );
+		return false === $result ? new WP_Error( 'ssw_location_insert_failed', __( 'Could not create location.', 'sheet-stock-sync-woo' ) ) : (int) $wpdb->insert_id;
 	}
 
 	public static function get_balance( $product_id, $location_id ) {
