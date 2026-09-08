@@ -10,6 +10,7 @@ on:
       - phase-2-location-ledger
       - phase-3-purchase-orders
       - phase-4-barcode-workflows
+      - phase-5-analytics-aggregation
 
 jobs:
   foundation:
@@ -35,3 +36,5 @@ jobs:
         run: php tests/test-purchase-orders.php
       - name: Run barcode workflow test
         run: php tests/test-barcodes.php
+      - name: Run analytics aggregation test
+        run: php tests/test-analytics-aggregation.php
