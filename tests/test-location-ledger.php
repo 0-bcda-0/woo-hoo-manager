@@ -1,0 +1,60 @@
+<?php
+/**
+ * Lightweight location/ledger domain test.
+ */
+
+declare(strict_types=1);
+
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', __DIR__ . '/tmp-wordpress/' );
+}
+
+if ( ! function_exists( 'absint' ) ) {
+	function absint( $value ) { return abs( (int) $value ); }
+}
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+	function sanitize_text_field( $value ) { return trim( strip_tags( (string) $value ) ); }
+}
+
+function ssw_assert_location( $condition, $message ) {
+	if ( ! $condition ) {
+		fwrite( STDERR, "FAIL: {$message}\n" );
+		exit( 1 );
+	}
+}
+
+$class_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-locations.php';
+$ledger_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-stock-ledger.php';
+ssw_assert_location( file_exists( $class_file ), 'class-ssw-locations.php must exist.' );
+ssw_assert_location( file_exists( $ledger_file ), 'class-ssw-stock-ledger.php must exist.' );
+require_once $class_file;
+require_once $ledger_file;
+
+ssw_assert_location( 12.0 === SSW_Locations::aggregate_sellable( array(
+	array( 'quantity' => 5, 'is_sellable' => 1, 'active' => 1 ),
+	array( 'quantity' => 7, 'is_sellable' => 1, 'active' => 1 ),
+	array( 'quantity' => 99, 'is_sellable' => 0, 'active' => 1 ),
+	array( 'quantity' => 50, 'is_sellable' => 1, 'active' => 0 ),
+) ), 'Only active sellable locations contribute to Woo aggregate.' );
+
+$movement = SSW_Stock_Ledger::normalize_movement( array(
+	'product_id'  => '42',
+	'location_id' => '3',
+	'delta'       => '-4.5',
+	'type'        => ' adjustment ',
+	'source'      => ' manual ',
+	'note'        => ' Count correction ',
+) );
+ssw_assert_location( 42 === $movement['product_id'], 'Movement product ID is normalized.' );
+ssw_assert_location( 3 === $movement['location_id'], 'Movement location ID is normalized.' );
+ssw_assert_location( -4.5 === $movement['delta'], 'Movement delta preserves signed decimal quantity.' );
+ssw_assert_location( 'adjustment' === $movement['type'], 'Movement type is normalized.' );
+ssw_assert_location( 'manual' === $movement['source'], 'Movement source is normalized.' );
+ssw_assert_location( 'Count correction' === $movement['note'], 'Movement note is sanitized.' );
+
+$transfer = SSW_Stock_Ledger::paired_transfer_movements( 42, 2, 5, 6, 'test' );
+ssw_assert_location( -6.0 === $transfer[0]['delta'], 'Transfer out is negative.' );
+ssw_assert_location( 6.0 === $transfer[1]['delta'], 'Transfer in is positive.' );
+ssw_assert_location( 0.0 === $transfer[0]['delta'] + $transfer[1]['delta'], 'Transfer does not change aggregate stock.' );
+
+fwrite( STDOUT, "PASS: location ledger behavior\n" );
