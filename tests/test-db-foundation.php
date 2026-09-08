@@ -62,11 +62,11 @@ require_once $class_file;
 
 ssw_assert( class_exists( 'SSW_DB' ), 'SSW_DB class must exist.' );
 ssw_assert( defined( 'SSW_DB_SCHEMA_VERSION' ), 'SSW_DB_SCHEMA_VERSION must be defined.' );
-ssw_assert( '5' === (string) SSW_DB_SCHEMA_VERSION, 'Barcode schema raises version to 5.' );
+ssw_assert( '6' === (string) SSW_DB_SCHEMA_VERSION, 'Analytics aggregation schema raises version to 6.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( '5' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 5.' );
-ssw_assert( 11 === count( $ssw_test_dbdelta_calls ), 'First upgrade creates metadata, supplier, location, PO and barcode tables.' );
+ssw_assert( '6' === (string) get_option( 'ssw_db_schema_version', '0' ), 'First upgrade stores schema version 6.' );
+ssw_assert( 13 === count( $ssw_test_dbdelta_calls ), 'First upgrade creates metadata, supplier, location, PO, barcode and analytics tables.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[1], 'ssw_suppliers' ), 'Supplier table migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[2], 'ssw_supplier_products' ), 'Supplier-product table migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[3], 'ssw_locations' ), 'Locations table migration is present.' );
@@ -77,8 +77,10 @@ ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[7], 'ssw_purchase_order_it
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[8], 'ssw_po_receipts' ), 'PO receipts migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[9], 'ssw_po_receipt_items' ), 'PO receipt items migration is present.' );
 ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[10], 'ssw_barcodes' ), 'Barcode table migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[11], 'ssw_sales_daily' ), 'Daily sales fact migration is present.' );
+ssw_assert( false !== strpos( $ssw_test_dbdelta_calls[12], 'ssw_inventory_snapshots_daily' ), 'Inventory snapshot migration is present.' );
 
 SSW_DB::maybe_upgrade();
-ssw_assert( 11 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
+ssw_assert( 13 === count( $ssw_test_dbdelta_calls ), 'Second upgrade is idempotent and does not rerun migrations.' );
 
 fwrite( STDOUT, "PASS: database migration foundation\n" );
