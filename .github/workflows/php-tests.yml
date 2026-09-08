@@ -65,3 +65,5 @@ jobs:
         run: php tests/test-what-if-simulator.php
       - name: Run approved weekly executive report test
         run: php tests/test-weekly-report.php
+      - name: Run runtime scope lock test
+        run: php tests/test-scope-lock-runtime.php
