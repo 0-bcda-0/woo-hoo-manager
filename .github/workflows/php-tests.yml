@@ -15,6 +15,7 @@ on:
       - phase-7-inventory-intelligence
       - phase-8-bundle-recommendations
       - phase-9-smart-alerts
+      - phase-10-operations-cockpit
 
 jobs:
   foundation:
@@ -54,3 +55,5 @@ jobs:
         run: php tests/test-bundle-recommendations.php
       - name: Run approved smart alert test
         run: php tests/test-smart-alerts.php
+      - name: Run approved operations cockpit test
+        run: php tests/test-action-center.php
