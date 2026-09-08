@@ -41,7 +41,7 @@ $rejected = SSW_Bundle_Opportunities::score_candidate( array(
 ssw_assert_bundle( 0.0 === $rejected, 'Weak one-off co-purchase evidence is rejected.' );
 
 $ceiling = SSW_Bundle_Opportunities::discount_ceiling( 40.00, 10.00, 8.00, 0.35 );
-ssw_assert_bundle( abs( 12.3076923077 - $ceiling['max_discount_percent'] ) < 0.0001, 'Discount ceiling preserves configured gross-margin floor.' );
+ssw_assert_bundle( abs( 30.7692307692 - $ceiling['max_discount_percent'] ) < 0.0001, 'Discount ceiling preserves configured gross-margin floor.' );
 ssw_assert_bundle( null === SSW_Bundle_Opportunities::discount_ceiling( 40.00, null, 8.00, 0.35 ), 'Missing cost suppresses discount advice.' );
 
 fwrite( STDOUT, "PASS: approved bundle recommendations\n" );
