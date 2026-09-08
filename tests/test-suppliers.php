@@ -26,6 +26,7 @@ function ssw_assert_supplier( $condition, $message ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );
 		exit( 1 );
 	}
+}
 
 $class_file = dirname( __DIR__ ) . '/sheet-stock-sync-woo/includes/class-ssw-suppliers.php';
 ssw_assert_supplier( file_exists( $class_file ), 'class-ssw-suppliers.php must exist.' );
