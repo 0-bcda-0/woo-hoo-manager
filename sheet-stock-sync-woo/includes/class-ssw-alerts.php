@@ -70,13 +70,12 @@ final class SSW_Alerts {
 		$expected = isset( $data['expected_arrival'] ) ? substr( (string) $data['expected_arrival'], 0, 10 ) : '';
 		$today = isset( $data['today'] ) ? substr( (string) $data['today'], 0, 10 ) : gmdate( 'Y-m-d' );
 		if ( ! $po_id || ! $expected || ! in_array( $status, array( 'ordered', 'shipped', 'partially_received' ), true ) || $expected >= $today ) { return array(); }
-		$context = array( 'expected_arrival' => $expected, 'status' => $status );
 		return array( array(
 			'type' => 'late_purchase_order',
 			'severity' => 'warning',
 			'purchase_order_id' => $po_id,
 			'dedupe_key' => self::dedupe_key( 'late_purchase_order', array( 'purchase_order_id' => $po_id ) ),
-			'context' => $context,
+			'context' => array( 'expected_arrival' => $expected, 'status' => $status ),
 		) );
 	}
 
@@ -85,15 +84,15 @@ final class SSW_Alerts {
 		$table = self::table();
 		$type = sanitize_key( isset( $alert['type'] ) ? $alert['type'] : '' );
 		if ( ! $type ) { return false; }
-		$product_id = ! empty( $alert['product_id'] ) ? absint( $alert['product_id'] ) : null;
-		$po_id = ! empty( $alert['purchase_order_id'] ) ? absint( $alert['purchase_order_id'] ) : null;
+		$product_id = ! empty( $alert['product_id'] ) ? absint( $alert['product_id'] ) : 0;
+		$po_id = ! empty( $alert['purchase_order_id'] ) ? absint( $alert['purchase_order_id'] ) : 0;
 		$identity = $product_id ? array( 'product_id' => $product_id ) : array( 'purchase_order_id' => $po_id );
 		$key = ! empty( $alert['dedupe_key'] ) ? substr( (string) $alert['dedupe_key'], 0, 64 ) : self::dedupe_key( $type, $identity );
 		$severity = self::normalize_severity( isset( $alert['severity'] ) ? $alert['severity'] : 'warning' );
 		$context = wp_json_encode( isset( $alert['context'] ) ? $alert['context'] : array() );
 		$now = current_time( 'mysql' );
-		$sql = "INSERT INTO {$table} (type,severity,product_id,purchase_order_id,dedupe_key,state,context_json,first_seen,last_seen,updated_by) VALUES (%s,%s,%d,%d,%s,'open',%s,%s,%s,0) ON DUPLICATE KEY UPDATE severity=VALUES(severity), context_json=VALUES(context_json), last_seen=VALUES(last_seen), state=IF(state='resolved','open',state), resolved_at=IF(state='resolved',NULL,resolved_at)";
-		return false !== $wpdb->query( $wpdb->prepare( $sql, $type, $severity, (int) $product_id, (int) $po_id, $key, $context, $now, $now ) );
+		$sql = "INSERT INTO {$table} (type,severity,product_id,purchase_order_id,dedupe_key,state,context_json,first_seen,last_seen,updated_by) VALUES (%s,%s,%d,%d,%s,'open',%s,%s,%s,0) ON DUPLICATE KEY UPDATE severity=VALUES(severity), context_json=VALUES(context_json), last_seen=VALUES(last_seen), resolved_at=IF(state='resolved',NULL,resolved_at), state=IF(state='resolved','open',state)";
+		return false !== $wpdb->query( $wpdb->prepare( $sql, $type, $severity, $product_id, $po_id, $key, $context, $now, $now ) );
 	}
 
 	public static function set_state( $id, $state, $snoozed_until = null, $user_id = 0 ) {
@@ -122,12 +121,11 @@ final class SSW_Alerts {
 	}
 
 	private static function make( $type, $severity, $product_id, $context ) {
-		$identity = array( 'product_id' => (int) $product_id );
 		return array(
 			'type' => $type,
 			'severity' => self::normalize_severity( $severity ),
 			'product_id' => (int) $product_id,
-			'dedupe_key' => self::dedupe_key( $type, $identity ),
+			'dedupe_key' => self::dedupe_key( $type, array( 'product_id' => (int) $product_id ) ),
 			'context' => $context,
 		);
 	}
